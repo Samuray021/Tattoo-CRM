@@ -27,7 +27,7 @@ body{background:var(--canvas);color:var(--ink)}
 .round,.sketch-picker{background:var(--glass);border-color:var(--stroke);color:var(--ink)}
 .months button,.week,.months span,.heading,.count,.detail-meta,.field,.event p,.history small,.client-item small,.stat small,.empty,.note{color:var(--muted)}
 .day{color:var(--ink)}.day.weekend{color:var(--muted)}
-.day.today .number{color:var(--accent)}
+.day.today .number{color:var(--accent);font-weight:750}.day.today:not(.selected) .number{outline:2px solid var(--accent);outline-offset:2px;border-radius:50%}.day.today.selected .number{box-shadow:0 0 0 3px var(--page),0 0 0 5px var(--accent)}
 .day.selected .number{background:var(--accent);color:var(--accent-contrast)}
 .dot{background:var(--accent)}
 .event,.client-item,.history{border-color:var(--stroke)}.event.done .circle{background:var(--accent);border-color:var(--accent)}
@@ -63,6 +63,18 @@ html[data-theme="dark"] .shade{background:#0009}
 #calendarPage{touch-action:pan-y}
 #pullRefreshHint{position:fixed;z-index:20;top:calc(env(safe-area-inset-top) + 10px);left:50%;transform:translate(-50%,-130px);background:var(--glass);color:var(--ink);border:1px solid var(--stroke);border-radius:999px;padding:10px 18px;box-shadow:0 8px 20px #0002;pointer-events:none;transition:transform .18s ease;font-size:13px;backdrop-filter:blur(16px)}
 #pullRefreshHint.visible{transform:translate(-50%,0)}
+
+.client-item{align-items:flex-start;min-height:118px}.client-item .avatar{width:88px;height:100px;flex-shrink:0}
+.client-item .client-details{min-width:0;flex:1}.client-item .client-details strong{display:block;margin:1px 0 7px}
+.client-item .session-meta{font-size:13px;color:var(--ink);line-height:1.55;display:block}
+.client-item .session-note{font-size:12px;color:var(--muted);margin-top:5px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;overflow-wrap:anywhere}
+.finance-header{display:flex;gap:10px;align-items:center;margin:10px 0 18px}.finance-header input{flex:1;min-width:0;background:var(--surface);border:1px solid var(--stroke);border-radius:15px;color:var(--ink);padding:13px}
+.finance-cards{display:grid;grid-template-columns:1fr 1fr;gap:11px}.finance-card{padding:17px 14px;border:1px solid var(--stroke);border-radius:19px;background:var(--surface);min-width:0}
+.finance-card strong{display:block;font-size:clamp(18px,5vw,24px);margin-top:10px;overflow-wrap:anywhere}.finance-card small{font-size:12px;color:var(--muted);line-height:1.5}
+.finance-section-title{font-size:17px;margin:26px 0 11px}.expense-form{display:grid;gap:11px}.expense-form input{width:100%;padding:13px;border-radius:13px;border:1px solid var(--stroke);background:var(--input);color:var(--ink)}
+.expense-item{display:flex;align-items:center;gap:10px;justify-content:space-between;border-bottom:1px solid var(--stroke);padding:13px 0}
+.expense-item div{min-width:0}.expense-item strong{display:block}.expense-item small{display:block;color:var(--muted);margin-top:5px}.expense-item button{background:var(--surface);border:1px solid var(--stroke);color:var(--ink);border-radius:11px;padding:10px}
+.tabbar{gap:3px}.tabbar button{min-width:0;font-size:11px}
 </style>
 </head>
 <body>
@@ -72,10 +84,28 @@ html[data-theme="dark"] .shade{background:#0009}
 <nav class="months"><button id="prev" aria-label="Предыдущий месяц">‹</button><span id="year"></span><button id="next" aria-label="Следующий месяц">›</button></nav>
 <div class="week"><span>П</span><span>В</span><span>С</span><span>Ч</span><span>П</span><span>С</span><span>В</span></div><div class="dates" id="dates"></div><section class="agenda" id="agenda"></section>
 </section>
-<section id="settingsPage" class="hidden"><div class="settings-section"><h2 class="settings-heading">Оформление</h2><div class="theme-options"><button type="button" data-theme-option="system" class="theme-option" aria-pressed="false"><span class="theme-preview system"></span>Как в системе</button><button type="button" class="theme-option" data-theme-option="light" aria-pressed="true"><span class="theme-preview light"></span>Светлая</button><button type="button" class="theme-option" data-theme-option="dark" aria-pressed="false"><span class="theme-preview dark"></span>Тёмная</button></div></div><div class="settings-section"><h2 class="settings-heading">Цветовой акцент</h2><div id="accentOptions" class="accent-options" role="group" aria-label="Цветовой акцент"></div><p class="settings-help">Цвет применяется к выбранной дате, кнопкам и активным элементам в обеих темах.</p><div class="settings-current" id="currentAppearance"></div></div></section><section id="clientsPage" class="hidden"><input id="clientSearch" class="search" type="search" placeholder="Поиск по имени или телефону" autocomplete="off"><div id="clientCount" class="count"></div><div id="clientList"></div></section>
+<section id="settingsPage" class="hidden"><div class="settings-section"><h2 class="settings-heading">Оформление</h2><div class="theme-options"><button type="button" data-theme-option="system" class="theme-option" aria-pressed="false"><span class="theme-preview system"></span>Как в системе</button><button type="button" class="theme-option" data-theme-option="light" aria-pressed="true"><span class="theme-preview light"></span>Светлая</button><button type="button" class="theme-option" data-theme-option="dark" aria-pressed="false"><span class="theme-preview dark"></span>Тёмная</button></div></div><div class="settings-section"><h2 class="settings-heading">Цветовой акцент</h2><div id="accentOptions" class="accent-options" role="group" aria-label="Цветовой акцент"></div><p class="settings-help">Цвет применяется к выбранной дате, кнопкам и активным элементам в обеих темах.</p><div class="settings-current" id="currentAppearance"></div></div></section><section id="financePage" class="hidden">
+<div class="finance-header"><label for="financeMonth">Месяц</label><input id="financeMonth" type="month" aria-label="Месяц финансов"></div>
+<div class="finance-cards">
+<div class="finance-card"><small>Получено за завершённые сеансы</small><strong id="financeReceived">0 ₽</strong></div>
+<div class="finance-card"><small>Ожидается по записям в этом месяце</small><strong id="financeExpected">0 ₽</strong></div>
+<div class="finance-card"><small>Расходы за месяц</small><strong id="financeSpent">0 ₽</strong></div>
+<div class="finance-card"><small>Результат после расходов</small><strong id="financeNet">0 ₽</strong></div>
+</div>
+<div class="finance-card" style="margin-top:12px"><small>Прогноз записей на следующий месяц</small><strong id="financeNext">0 ₽</strong></div>
+<h2 class="finance-section-title">Расходы</h2>
+<form id="expenseForm" class="expense-form">
+<input id="expenseDate" type="date" required aria-label="Дата расхода">
+<input id="expenseAmount" type="number" min="0.01" step="0.01" required placeholder="Сумма, ₽" aria-label="Сумма расхода">
+<input id="expenseNote" maxlength="200" required placeholder="На что потрачено: картриджи, плёнка…" aria-label="Описание расхода">
+<button type="submit" class="primary">+ Добавить расход</button>
+</form>
+<h2 class="finance-section-title">Расходы за выбранный месяц</h2><div id="expenseList"></div>
+<p class="note">Получено — по отмеченным завершённым сеансам. Прогноз — по незавершённым записям, не гарантированный доход. Финансы пока сохраняются только на этом устройстве.</p>
+</section><section id="clientsPage" class="hidden"><input id="clientSearch" class="search" type="search" placeholder="Поиск по имени или телефону" autocomplete="off"><div id="clientCount" class="count"></div><div id="clientList"></div></section>
 </main>
 <button class="add" id="add"><span class="plus">+</span><span id="addText">Добавить запись</span></button>
-<nav class="tabbar" aria-label="Разделы"><button class="active" id="calendarTab"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v4M17 3v4M3 10h18"/></svg>Календарь</button><button id="clientsTab"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21v-2a8 8 0 0 1 16 0v2"/></svg>Клиенты</button><button id="settingsTab" type="button"><svg viewBox="0 0 24 24"><path d="M4 7h16M4 17h16M8 4v6M16 14v6"/><circle cx="8" cy="7" r="2"/><circle cx="16" cy="17" r="2"/></svg>Настройки</button></nav>
+<nav class="tabbar" aria-label="Разделы"><button class="active" id="calendarTab"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v4M17 3v4M3 10h18"/></svg>Календарь</button><button id="clientsTab"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21v-2a8 8 0 0 1 16 0v2"/></svg>Клиенты</button><button id="financeTab" type="button"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 9h10M7 13h6M7 17h4"/></svg>Финансы</button><button id="settingsTab" type="button"><svg viewBox="0 0 24 24"><path d="M4 7h16M4 17h16M8 4v6M16 14v6"/><circle cx="8" cy="7" r="2"/><circle cx="16" cy="17" r="2"/></svg>Настройки</button></nav>
 <div class="shade" id="shade"><section class="sheet" id="sheet">
 <div class="sheet-head"><h2 id="sheetTitle">Новый сеанс</h2><button id="close" aria-label="Закрыть">×</button></div>
 <div id="appointmentView">
@@ -109,7 +139,7 @@ const now=new Date(),iso=d=>[d.getFullYear(),String(d.getMonth()+1).padStart(2,'
 const money=n=>Number(n||0).toLocaleString('ru-RU')+' ₽',digits=s=>String(s||'').replace(/\D/g,''),normalized=s=>{const x=digits(s);return x.length===11&&x[0]==='8'?'7'+x.slice(1):x};
 const read=(key,def)=>{try{const val=JSON.parse(localStorage.getItem(key));return Array.isArray(val)?val:def}catch{return def}};
 let appointments=read('tattoo-crm-appointments-v1',[]),clients=read('tattoo-crm-clients-v1',[]);
-let viewed=new Date(now.getFullYear(),now.getMonth(),1),selected=null,tab='calendar',editing=null,chosenClient=null,linkedClient=null,pendingSketch=null,removeSketch=false,sketchUrl=null;
+let viewed=new Date(now.getFullYear(),now.getMonth(),1),selected=iso(now),tab='calendar',editing=null,chosenClient=null,linkedClient=null,pendingSketch=null,removeSketch=false,sketchUrl=null;
 const save=()=>{localStorage.setItem('tattoo-crm-appointments-v1',JSON.stringify(appointments));localStorage.setItem('tattoo-crm-clients-v1',JSON.stringify(clients))};
 const byPhone=phone=>{const n=normalized(phone);return n.length>=10?clients.find(c=>normalized(c.phone)===n):null};
 const byId=id=>clients.find(c=>c.id===id);
@@ -158,14 +188,40 @@ reconcile();
 const dbPromise=new Promise((resolve,reject)=>{const request=indexedDB.open('tattoo-crm-sketches',1);request.onupgradeneeded=()=>{if(!request.result.objectStoreNames.contains('images'))request.result.createObjectStore('images')};request.onsuccess=()=>resolve(request.result);request.onerror=()=>reject(request.error)});
 async function imageOperation(mode,id,blob){const db=await dbPromise;return new Promise((resolve,reject)=>{const tx=db.transaction('images',mode==='get'?'readonly':'readwrite'),store=tx.objectStore('images');let request;if(mode==='get'){request=store.get(id);request.onsuccess=()=>resolve(request.result)}else{mode==='put'?store.put(blob,id):store.delete(id);tx.oncomplete=()=>resolve()}tx.onerror=()=>reject(tx.error);if(request)request.onerror=()=>reject(request.error)})}
 function preview(blob){if(sketchUrl)URL.revokeObjectURL(sketchUrl);sketchUrl=blob?URL.createObjectURL(blob):null;$('#sketchPreview').src=sketchUrl||'';$('#sketchPreview').classList.toggle('visible',!!blob);$('#sketchRemove').classList.toggle('visible',!!blob)}
-function render(){if(tab==='calendar')renderCalendar();else if(tab==='clients')renderClients()}
+function render(){if(tab==='calendar')renderCalendar();else if(tab==='clients')renderClients();else if(tab==='finance')renderFinance()}
 function renderCalendar(){const y=viewed.getFullYear(),m=viewed.getMonth();$('#title').textContent=months[m];$('#year').textContent=y;const grid=$('#dates');grid.replaceChildren();const first=(new Date(y,m,1).getDay()+6)%7;for(let i=0;i<first;i++)grid.append(document.createElement('div'));const count=new Date(y,m+1,0).getDate();for(let day=1;day<=count;day++){const d=iso(new Date(y,m,day)),button=document.createElement('button');button.className='day'+([0,6].includes(new Date(y,m,day).getDay())?' weekend':'')+(d===iso(now)?' today':'')+(selected===d?' selected':'');const num=document.createElement('span');num.className='number';num.textContent=day;const dot=document.createElement('span');dot.className=appointments.some(x=>x.date===d)?'dot':'no-dot';button.append(num,dot);button.onclick=()=>{selected=selected===d?null:d;render()};grid.append(button)}
 const matching=appointments.filter(a=>{const p=a.date.split('-');return +p[0]===y&&+p[1]===m+1&&(!selected||a.date===selected)}).sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time)),agenda=$('#agenda');agenda.replaceChildren();let last='';for(const a of matching){if(a.date!==last){last=a.date;const h=document.createElement('div');h.className='heading';h.textContent=Number(a.date.slice(-2))+' '+months[m].slice(0,3).toLowerCase()+'.';agenda.append(h)}const row=document.createElement('div');row.className='event'+(a.done?' done':'');const circle=document.createElement('span');circle.className='circle';const info=document.createElement('div'),title=document.createElement('h3'),sub=document.createElement('p');title.textContent=(a.time||'—')+'  '+(byId(a.clientId)?.name||a.name)+(a.price?'  '+money(Math.max(0,+a.price-(+a.discount||0))):'');sub.textContent=a.done?'Сеанс завершён':a.notes||'Запланированный сеанс';info.append(title,sub);row.append(circle,info);row.onclick=()=>openAppointment(a);agenda.append(row)}if(!matching.length){const el=document.createElement('p');el.className='empty';el.textContent=selected?'На выбранный день записей нет':'На этот месяц записей пока нет';agenda.append(el)}}
 let clientListRenderToken=0;
 async function getClientPhoto(id){const custom=await imageOperation('get','client-photo-'+id);if(custom)return custom;const first=appointments.filter(a=>a.clientId===id).sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time));for(const a of first){const blob=await imageOperation('get',a.id);if(blob)return blob}return null}
 function assignClientPhoto(node,id){getClientPhoto(id).then(blob=>{if(!blob||!node.isConnected)return;const url=URL.createObjectURL(blob),img=document.createElement('img');img.alt='Фото клиента';img.onload=()=>URL.revokeObjectURL(url);img.onerror=()=>URL.revokeObjectURL(url);img.src=url;node.replaceChildren(img)}).catch(console.error)}
-function renderClients(){const q=$('#clientSearch').value.trim().toLowerCase(),list=clients.filter(c=>c.name.toLowerCase().includes(q)||digits(c.phone).includes(digits(q))&&!!digits(q)).sort((a,b)=>a.name.localeCompare(b.name,'ru'));$('#clientCount').textContent='Клиентов: '+clients.length;const target=$('#clientList');target.replaceChildren();for(const c of list){const count=appointments.filter(a=>a.clientId===c.id).length,button=document.createElement('button'),avatar=document.createElement('span'),text=document.createElement('span'),name=document.createElement('strong'),hint=document.createElement('small'),arrow=document.createElement('span');button.className='client-item';avatar.className='avatar';avatar.textContent=(c.name||'?')[0].toUpperCase();assignClientPhoto(avatar,c.id);name.textContent=c.name;hint.textContent=[c.phone,count+' сеанс(ов)'].filter(Boolean).join(' · ');text.append(name,hint);arrow.className='arrow';arrow.textContent='›';button.append(avatar,text,arrow);button.onclick=()=>openClient(c.id);target.append(button)}if(!list.length){const p=document.createElement('div');p.className='empty';p.textContent='Клиенты не найдены';target.append(p)}}
-function setTab(next){tab=next;$('#calendarPage').classList.toggle('hidden',next!=='calendar');$('#clientsPage').classList.toggle('hidden',next!=='clients');$('#settingsPage').classList.toggle('hidden',next!=='settings');for(const name of ['calendar','clients','settings'])$('#'+name+'Tab').classList.toggle('active',next===name);$('#add').classList.toggle('hidden',next==='settings');$('#title').textContent=next==='settings'?'Настройки':next==='clients'?'Клиенты':months[viewed.getMonth()];$('#addText').textContent=next==='calendar'?'Добавить запись':'Добавить клиента';render()}
+function renderClients(){
+ const q=$('#clientSearch').value.trim().toLowerCase();
+ const list=clients.filter(c=>c.name.toLowerCase().includes(q)||(!!digits(q)&&digits(c.phone).includes(digits(q)))).sort((a,b)=>a.name.localeCompare(b.name,'ru'));
+ $('#clientCount').textContent='Клиентов: '+clients.length;const target=$('#clientList');target.replaceChildren();
+ for(const c of list){
+  const history=appointments.filter(a=>a.clientId===c.id).sort((a,b)=>(b.date+b.time).localeCompare(a.date+a.time)),a=history[0];
+  const button=document.createElement('button');button.className='client-item';
+  const avatar=document.createElement('span');avatar.className='avatar';avatar.textContent=(c.name||'?')[0].toUpperCase();assignClientPhoto(avatar,c.id);
+  const details=document.createElement('span');details.className='client-details',name=document.createElement('strong');name.textContent=c.name;details.append(name);
+  if(a){const meta=document.createElement('span');meta.className='session-meta';meta.textContent=a.date.split('-').reverse().join('.')+' · '+(a.time||'—')+' · '+money(Math.max(0,Number(a.price||0)-Number(a.discount||0)));
+   const status=document.createElement('small');status.textContent=(a.done?'Завершён':'Запланирован')+' · Сеансов: '+history.length;details.append(meta,status);
+   const note=document.createElement('span');note.className='session-note';note.textContent='Примечание: '+(a.notes||'—');details.append(note);
+  }else{const sub=document.createElement('small');sub.textContent=c.phone||'Сеансов пока нет';details.append(sub)}
+  const arrow=document.createElement('span');arrow.className='arrow';arrow.textContent='›';
+  button.append(avatar,details,arrow);button.onclick=()=>openClient(c.id);target.append(button)
+ }
+ if(!list.length){const empty=document.createElement('div');empty.className='empty';empty.textContent='Клиенты не найдены';target.append(empty)}
+}
+function setTab(next){
+ tab=next;
+ for(const name of ['calendar','clients','finance','settings']){
+  $('#'+name+'Page').classList.toggle('hidden',name!==next);
+  $('#'+name+'Tab').classList.toggle('active',name===next)
+ }
+ $('#add').classList.toggle('hidden',next==='settings'||next==='finance');
+ $('#title').textContent=next==='settings'?'Настройки':next==='clients'?'Клиенты':next==='finance'?'Финансы':months[viewed.getMonth()];
+ $('#addText').textContent=next==='calendar'?'Добавить запись':'Добавить клиента';render()
+}
 function showPanel(which,title){$('#shade').classList.add('show');$('#sheetTitle').textContent=title;for(const id of ['appointmentView','clientView','editClientView'])$('#'+id).classList.toggle('hidden',id!==which);$('#sheet').scrollTop=0}
 async function openAppointment(a=null,clientId=null){editing=a?.id||null;chosenClient=clientId||a?.clientId||null;linkedClient=chosenClient?byId(chosenClient):null;pendingSketch=null;removeSketch=false;$('#sketchInput').value='';preview(null);const form=$('#form');form.reset();const c=linkedClient;for(const key of ['date','time','phone','name','birthday','price','discount','notes'])form.elements[key].value=a?.[key]??(key==='date'?selected||iso(now):key==='time'?'14:00':key==='discount'?'0':c?.[key]||'');$('#linked').textContent=c?'Привязано к карточке: '+c.name:'';$('#completed').hidden=!a;$('#rescheduleButton').hidden=!a;$('#form').classList.remove('hidden');$('#rescheduleView').classList.add('hidden');$('#completed').textContent=a?.done?'Вернуть в запланированные':'Отметить сеанс завершённым';showPanel('appointmentView',a?'Редактирование сеанса':'Новый сеанс');if(a){try{const blob=await imageOperation('get',a.id);if(editing===a.id&&blob)preview(blob)}catch(err){console.error(err)}}}
 function matchPhone(){const f=$('#form'),found=byPhone(f.elements.phone.value);linkedClient=found||null;$('#linked').textContent=found?'Найден клиент: '+found.name+' — сеанс добавится в его историю':'';if(found){f.elements.name.value=found.name;f.elements.birthday.value=found.birthday||''}}
@@ -173,7 +229,7 @@ async function openClient(id){chosenClient=id;const c=byId(id);if(!c)return;$('#
 let removeSelectedClientPhoto=false;
 function editClient(id=null){chosenClient=id;removeSelectedClientPhoto=false;$('#clientPhotoInput').value='';const c=id?byId(id):null;const f=$('#clientForm');f.reset();for(const key of ['name','phone','birthday'])f.elements[key].value=c?.[key]||'';showPanel('editClientView',c?'Изменить клиента':'Новый клиент')}
 function close(){if(sketchUrl){URL.revokeObjectURL(sketchUrl);sketchUrl=null}$('#shade').classList.remove('show')}
-$('#prev').onclick=()=>{viewed=new Date(viewed.getFullYear(),viewed.getMonth()-1,1);selected=null;render()};$('#next').onclick=()=>{viewed=new Date(viewed.getFullYear(),viewed.getMonth()+1,1);selected=null;render()};$('#add').onclick=()=>tab==='calendar'?openAppointment():editClient();$('#calendarTab').onclick=()=>setTab('calendar');$('#clientsTab').onclick=()=>setTab('clients');$('#settingsTab').onclick=()=>setTab('settings');$('#clientSearch').oninput=renderClients;$('#close').onclick=close;$('#shade').onclick=e=>{if(e.target===$('#shade'))close()};$('#form').elements.phone.oninput=matchPhone;$('#editClient').onclick=()=>editClient(chosenClient);$('#newSession').onclick=()=>openAppointment(null,chosenClient);
+$('#prev').onclick=()=>{viewed=new Date(viewed.getFullYear(),viewed.getMonth()-1,1);selected=null;render()};$('#next').onclick=()=>{viewed=new Date(viewed.getFullYear(),viewed.getMonth()+1,1);selected=null;render()};$('#add').onclick=()=>tab==='calendar'?openAppointment():editClient();$('#calendarTab').onclick=()=>setTab('calendar');$('#clientsTab').onclick=()=>setTab('clients');$('#financeTab').onclick=()=>setTab('finance');$('#settingsTab').onclick=()=>setTab('settings');$('#clientSearch').oninput=renderClients;$('#close').onclick=close;$('#shade').onclick=e=>{if(e.target===$('#shade'))close()};$('#form').elements.phone.oninput=matchPhone;$('#editClient').onclick=()=>editClient(chosenClient);$('#newSession').onclick=()=>openAppointment(null,chosenClient);
 $('#sketchInput').onchange=e=>{const file=e.target.files?.[0];if(!file)return;if(!file.type.startsWith('image/')){alert('Выбери изображение');e.target.value='';return}if(file.size>15*1024*1024){alert('Максимальный размер изображения — 15 МБ');e.target.value='';return}pendingSketch=file;removeSketch=false;preview(file)};
 $('#sketchRemove').onclick=()=>{pendingSketch=null;removeSketch=true;$('#sketchInput').value='';preview(null)};
 $('#form').onsubmit=async event=>{event.preventDefault();const f=event.target,data=Object.fromEntries(new FormData(f).entries());delete data.sketchInput;const button=f.querySelector('[type=submit]');button.disabled=true;try{const candidate=byPhone(data.phone);let c=candidate||(chosenClient?byId(chosenClient):null);if(!c)c={id:crypto.randomUUID(),name:data.name,phone:data.phone||'',birthday:data.birthday||''};const a=editing?appointments.find(x=>x.id===editing):{id:crypto.randomUUID(),done:false};if(pendingSketch)await imageOperation('put',a.id,pendingSketch);else if(removeSketch)await imageOperation('delete',a.id);if(!clients.some(x=>x.id===c.id))clients.push(c);c.name=data.name;c.phone=data.phone;c.birthday=data.birthday;Object.assign(a,data,{clientId:c.id});if(!editing)appointments.push(a);save();const [y,m]=data.date.split('-').map(Number);viewed=new Date(y,m-1,1);selected=null;close();render()}catch(err){console.error(err);alert('Не удалось сохранить. Проверь доступное место на устройстве.')}finally{button.disabled=false}};
@@ -302,6 +358,49 @@ window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>
   },{passive:true});
   document.addEventListener('touchcancel',reset,{passive:true});
 })();
+
+
+/* tattoo-crm-finance-v1 */
+const expenseStoreKey='tattoo-crm-expenses-v1';
+let expenses=read(expenseStoreKey,[]);
+const currentMonth=iso(now).slice(0,7);
+$('#financeMonth').value=currentMonth;
+$('#expenseDate').value=iso(now);
+function financeValue(a){return Math.max(0,Number(a.price||0)-Number(a.discount||0))}
+function renderFinance(){
+ const month=$('#financeMonth').value||currentMonth;
+ const inMonth=appointments.filter(a=>a.date&&a.date.slice(0,7)===month);
+ const received=inMonth.filter(a=>a.done).reduce((s,a)=>s+financeValue(a),0);
+ const expected=inMonth.filter(a=>!a.done).reduce((s,a)=>s+financeValue(a),0);
+ const costs=expenses.filter(e=>e.date.slice(0,7)===month);
+ const spent=costs.reduce((s,e)=>s+Number(e.amount||0),0);
+ const [year,num]=month.split('-').map(Number),nextKey=iso(new Date(year,num,1)).slice(0,7);
+ const nextForecast=appointments.filter(a=>!a.done&&a.date&&a.date.slice(0,7)===nextKey).reduce((s,a)=>s+financeValue(a),0);
+ $('#financeReceived').textContent=money(received);
+ $('#financeExpected').textContent=money(expected);
+ $('#financeSpent').textContent=money(spent);
+ $('#financeNet').textContent=money(received-spent);
+ $('#financeNext').textContent=money(nextForecast);
+ const list=$('#expenseList');list.replaceChildren();
+ for(const expense of costs.slice().sort((a,b)=>b.date.localeCompare(a.date))){
+  const row=document.createElement('div');row.className='expense-item';
+  const info=document.createElement('div'),title=document.createElement('strong'),sub=document.createElement('small');
+  title.textContent=money(expense.amount);sub.textContent=expense.date.split('-').reverse().join('.')+' · '+expense.note;info.append(title,sub);
+  const del=document.createElement('button');del.type='button';del.textContent='Удалить';del.setAttribute('aria-label','Удалить расход');
+  del.onclick=()=>{if(!confirm('Удалить этот расход?'))return;const updated=expenses.filter(e=>e.id!==expense.id);try{localStorage.setItem(expenseStoreKey,JSON.stringify(updated));expenses=updated;renderFinance()}catch(err){alert('Не удалось удалить расход')}};
+  row.append(info,del);list.append(row)
+ }
+ if(!costs.length){const empty=document.createElement('p');empty.className='empty';empty.textContent='Расходов за этот месяц нет';list.append(empty)}
+}
+$('#financeMonth').onchange=renderFinance;
+$('#expenseForm').onsubmit=e=>{
+ e.preventDefault();
+ const date=$('#expenseDate').value,n=Number($('#expenseAmount').value),note=$('#expenseNote').value.trim();
+ if(!date||!Number.isFinite(n)||n<=0||!note)return;
+ const updated=[...expenses,{id:crypto.randomUUID(),date,amount:n,note}];
+ try{localStorage.setItem(expenseStoreKey,JSON.stringify(updated));expenses=updated;$('#expenseAmount').value='';$('#expenseNote').value='';$('#financeMonth').value=date.slice(0,7);renderFinance()}
+ catch(err){alert('Не удалось сохранить расход: проверь место на устройстве')}
+};
 
 applyAppearance();
 setTab('calendar');
