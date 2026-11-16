@@ -58,6 +58,11 @@ html[data-theme="dark"] .shade{background:#0009}
 .theme-options{grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}.theme-option{padding:12px 4px;font-size:12px;border-radius:15px}.theme-option[aria-pressed="true"]{padding:11px 3px}.theme-option .theme-preview{height:36px;margin-bottom:8px}.theme-preview.system{background:linear-gradient(120deg,#f5f5f7 50%,#272833 50%)}
 .client-item{padding:13px;margin:0 0 11px;min-height:100px;border:1px solid var(--stroke);border-radius:20px;background:var(--glass);gap:15px;box-shadow:0 5px 18px #00000008;color:var(--ink)}.client-item .avatar{width:74px;height:74px;border-radius:16px;overflow:hidden;background:var(--surface);color:var(--accent);font-size:26px;border:1px solid var(--stroke)}.client-item .avatar img{width:100%;height:100%;object-fit:cover}.client-item strong{color:var(--ink);font-size:17px}.client-item small{color:var(--muted);line-height:1.5}.client-item .arrow{color:var(--accent)}.client-item:active{border-color:var(--accent)}.client-item>span:nth-child(2){min-width:0;flex:1}
 #clientMeta .profile-photo{width:90px;height:90px;border-radius:20px;object-fit:cover;margin-bottom:12px;border:1px solid var(--stroke)}
+
+/* Touch navigation: existing calendar appearance remains unchanged. */
+#calendarPage{touch-action:pan-y}
+#pullRefreshHint{position:fixed;z-index:20;top:calc(env(safe-area-inset-top) + 10px);left:50%;transform:translate(-50%,-130px);background:var(--glass);color:var(--ink);border:1px solid var(--stroke);border-radius:999px;padding:10px 18px;box-shadow:0 8px 20px #0002;pointer-events:none;transition:transform .18s ease;font-size:13px;backdrop-filter:blur(16px)}
+#pullRefreshHint.visible{transform:translate(-50%,0)}
 </style>
 </head>
 <body>
@@ -244,6 +249,60 @@ window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>
   },{passive:true});
   document.addEventListener('touchcancel',()=>{gesture=null;},{passive:true});
 })();
+
+/* tattoo-crm-touch-gestures-v1 */
+(function installTouchGestures(){
+  let startX=0,startY=0,gesture=null,pullDistance=0,fromCalendar=false;
+  const hint=document.createElement('div');
+  hint.id='pullRefreshHint';
+  hint.setAttribute('role','status');
+  hint.textContent='Потяни вниз для обновления';
+  document.body.append(hint);
+  const sheetOpen=()=>document.querySelector('#shade').classList.contains('show');
+  const reset=()=>{gesture=null;pullDistance=0;hint.classList.remove('visible')};
+  document.addEventListener('touchstart',e=>{
+    if(e.touches.length!==1||sheetOpen()){reset();return}
+    if(e.target.closest('input,textarea,select,[contenteditable="true"],.tabbar,.add')){reset();return}
+    startX=e.touches[0].clientX;startY=e.touches[0].clientY;
+    gesture='pending';pullDistance=0;
+    fromCalendar=tab==='calendar'&&!!e.target.closest('#calendarPage');
+  },{passive:true});
+  document.addEventListener('touchmove',e=>{
+    if(!gesture||gesture==='none'||e.touches.length!==1)return;
+    const dx=e.touches[0].clientX-startX;
+    const dy=e.touches[0].clientY-startY;
+    if(gesture==='pending' && Math.max(Math.abs(dx),Math.abs(dy))>12){
+      if(fromCalendar&&Math.abs(dx)>Math.abs(dy)*1.35){gesture='horizontal'}
+      else if(dy>0&&Math.abs(dy)>Math.abs(dx)*1.35&&window.scrollY<=1){gesture='pull'}
+      else{gesture='none'}
+    }
+    if(gesture==='pull'){
+      if(window.scrollY>1){reset();return}
+      if(e.cancelable)e.preventDefault();
+      pullDistance=Math.max(0,dy);
+      hint.textContent=pullDistance>=90?'Отпусти для обновления':'Потяни вниз для обновления';
+      hint.classList.add('visible');
+    }else if(gesture==='horizontal'&&fromCalendar){
+      if(e.cancelable)e.preventDefault();
+    }
+  },{passive:false});
+  document.addEventListener('touchend',e=>{
+    if(!gesture)return;
+    const dx=(e.changedTouches[0]?.clientX??startX)-startX;
+    const dy=(e.changedTouches[0]?.clientY??startY)-startY;
+    if(gesture==='pull'&&pullDistance>=90){
+      hint.textContent='Обновление…';
+      window.location.reload();
+    }else if(gesture==='horizontal'&&fromCalendar&&Math.abs(dx)>=65&&Math.abs(dx)>Math.abs(dy)*1.35&&tab==='calendar'){
+      viewed=new Date(viewed.getFullYear(),viewed.getMonth()+(dx<0?1:-1),1);
+      selected=null;
+      renderCalendar();
+    }
+    reset();
+  },{passive:true});
+  document.addEventListener('touchcancel',reset,{passive:true});
+})();
+
 applyAppearance();
 setTab('calendar');
 </script>
