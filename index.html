@@ -68,6 +68,46 @@ const save=()=>{localStorage.setItem('tattoo-crm-appointments-v1',JSON.stringify
 const byPhone=phone=>{const n=normalized(phone);return n.length>=10?clients.find(c=>normalized(c.phone)===n):null};
 const byId=id=>clients.find(c=>c.id===id);
 function reconcile(){let changed=false;for(const a of appointments){let c=a.clientId&&byId(a.clientId);if(!c&&a.phone)c=byPhone(a.phone);if(!c){c={id:crypto.randomUUID(),name:a.name||'Без имени',phone:a.phone||'',birthday:a.birthday||''};clients.push(c);changed=true}if(a.clientId!==c.id){a.clientId=c.id;changed=true}}if(changed)save()}
+// Демо-данные создаются только в полностью пустом локальном хранилище.
+function seedDemo(){
+  if(clients.length||appointments.length||localStorage.getItem('tattoo-crm-demo-initialized'))return;
+  const examples=[
+    ['Анна Смирнова','2000-03-18','Минимализм, веточка на предплечье'],
+    ['Максим Орлов','1995-07-09','Геометрия на плече'],
+    ['Екатерина Волкова','1998-11-27','Цветочный эскиз'],
+    ['Дмитрий Соколов','1992-05-12','Чёрно-серая графика'],
+    ['Мария Кузнецова','2001-01-24','Маленькая надпись'],
+    ['Александр Петров','1996-09-06','Японский мотив'],
+    ['Полина Морозова','1999-12-14','Орнамент на запястье'],
+    ['Илья Новиков','1993-04-21','Контурный рисунок'],
+    ['София Васильева','2002-08-30','Птица в стиле лайнворк'],
+    ['Артём Фёдоров','1997-02-11','Эскиз на голени']
+  ];
+  const shiftDate=n=>{const d=new Date(now.getFullYear(),now.getMonth(),now.getDate()+n);return iso(d)};
+  clients=examples.map((e,i)=>({
+    id:'demo-client-'+(i+1),name:e[0],phone:'+7 000 000 '+String(i+1).padStart(2,'0')+' 00',
+    birthday:e[1],demo:true
+  }));
+  const schedule=[
+    [0,-24,'12:00',6500,0,true],[1,-12,'15:30',9000,1000,true],
+    [2,-6,'11:00',5500,0,true],[3,-3,'14:00',12000,1500,true],
+    [4,-1,'16:00',4000,0,true],[5,0,'13:00',8500,0,false],
+    [6,1,'10:30',5000,500,false],[7,2,'15:00',7000,0,false],
+    [8,4,'12:30',6000,0,false],[9,6,'17:00',10500,1000,false],
+    [0,8,'13:00',4500,0,false],[2,12,'11:30',7000,0,false],
+    [1,-40,'14:00',8000,0,true],[5,-65,'16:00',9500,500,true],
+    [7,-95,'12:00',6500,0,true]
+  ];
+  appointments=schedule.map((a,i)=>{
+    const c=clients[a[0]];
+    return {id:'demo-session-'+(i+1),clientId:c.id,name:c.name,phone:c.phone,
+      birthday:c.birthday,date:shiftDate(a[1]),time:a[2],price:String(a[3]),
+      discount:String(a[4]),done:a[5],notes:examples[a[0]][2],demo:true};
+  });
+  save();
+  localStorage.setItem('tattoo-crm-demo-initialized','1');
+}
+seedDemo();
 reconcile();
 const dbPromise=new Promise((resolve,reject)=>{const request=indexedDB.open('tattoo-crm-sketches',1);request.onupgradeneeded=()=>{if(!request.result.objectStoreNames.contains('images'))request.result.createObjectStore('images')};request.onsuccess=()=>resolve(request.result);request.onerror=()=>reject(request.error)});
 async function imageOperation(mode,id,blob){const db=await dbPromise;return new Promise((resolve,reject)=>{const tx=db.transaction('images',mode==='get'?'readonly':'readwrite'),store=tx.objectStore('images');let request;if(mode==='get'){request=store.get(id);request.onsuccess=()=>resolve(request.result)}else{mode==='put'?store.put(blob,id):store.delete(id);tx.oncomplete=()=>resolve()}tx.onerror=()=>reject(tx.error);if(request)request.onerror=()=>reject(request.error)})}
