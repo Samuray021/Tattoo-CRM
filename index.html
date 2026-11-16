@@ -202,7 +202,7 @@ function renderClients(){
   const history=appointments.filter(a=>a.clientId===c.id).sort((a,b)=>(b.date+b.time).localeCompare(a.date+a.time)),a=history[0];
   const button=document.createElement('button');button.className='client-item';
   const avatar=document.createElement('span');avatar.className='avatar';avatar.textContent=(c.name||'?')[0].toUpperCase();assignClientPhoto(avatar,c.id);
-  const details=document.createElement('span');details.className='client-details',name=document.createElement('strong');name.textContent=c.name;details.append(name);
+  const details=document.createElement('span');details.className='client-details';const name=document.createElement('strong');name.textContent=c.name;details.append(name);
   if(a){const meta=document.createElement('span');meta.className='session-meta';meta.textContent=a.date.split('-').reverse().join('.')+' · '+(a.time||'—')+' · '+money(Math.max(0,Number(a.price||0)-Number(a.discount||0)));
    const status=document.createElement('small');status.textContent=(a.done?'Завершён':'Запланирован')+' · Сеансов: '+history.length;details.append(meta,status);
    const note=document.createElement('span');note.className='session-note';note.textContent='Примечание: '+(a.notes||'—');details.append(note);
@@ -268,44 +268,6 @@ for(const color of accentPalette){
 }
 document.querySelectorAll('[data-theme-option]').forEach(b=>b.onclick=()=>{appearance.theme=b.dataset.themeOption;localStorage.setItem(appearanceKey,JSON.stringify(appearance));applyAppearance();render()});
 window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>{if(appearance.theme==='system')applyAppearance()});
-// Touch navigation: horizontal calendar swipes and pull-to-refresh on the app.
-(function initTouchGestures(){
-  let gesture=null;
-  const minHorizontal=65, minRefresh=110;
-  document.addEventListener('touchstart',event=>{
-    if(event.touches.length!==1||document.querySelector('#shade.show')){gesture=null;return;}
-    const target=event.target;
-    if(target.closest('input,textarea,select,[contenteditable="true"]')){gesture=null;return;}
-    const touch=event.touches[0];
-    const calendar=tab==='calendar'&&!!target.closest('#calendarPage');
-    gesture={x:touch.clientX,y:touch.clientY,calendar,atTop:window.scrollY<=5,refresh:false};
-  },{passive:true});
-  document.addEventListener('touchmove',event=>{
-    if(!gesture||event.touches.length!==1)return;
-    const touch=event.touches[0],dx=touch.clientX-gesture.x,dy=touch.clientY-gesture.y;
-    // Capture downward drag only at the page top; leave ordinary scrolling alone.
-    if(gesture.atTop&&dy>20&&Math.abs(dy)>Math.abs(dx)*1.25){
-      gesture.refresh=true;
-      if(event.cancelable)event.preventDefault();
-    }
-  },{passive:false});
-  document.addEventListener('touchend',event=>{
-    if(!gesture||!event.changedTouches.length)return;
-    const start=gesture;gesture=null;
-    const touch=event.changedTouches[0],dx=touch.clientX-start.x,dy=touch.clientY-start.y;
-    if(start.refresh&&dy>=minRefresh&&Math.abs(dy)>Math.abs(dx)*1.25){
-      window.location.reload();
-      return;
-    }
-    if(start.calendar&&Math.abs(dx)>=minHorizontal&&Math.abs(dx)>Math.abs(dy)*1.3){
-      viewed=new Date(viewed.getFullYear(),viewed.getMonth()+(dx<0?1:-1),1);
-      selected=null;
-      render();
-    }
-  },{passive:true});
-  document.addEventListener('touchcancel',()=>{gesture=null;},{passive:true});
-})();
-
 /* tattoo-crm-touch-gestures-v1 */
 (function installTouchGestures(){
   let startX=0,startY=0,gesture=null,pullDistance=0,fromCalendar=false;
@@ -348,6 +310,12 @@ window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>
     const dy=(e.changedTouches[0]?.clientY??startY)-startY;
     if(gesture==='pull'&&pullDistance>=90){
       hint.textContent='Обновление…';
+      try {
+        sessionStorage.setItem('tattoo-crm-refresh-view',JSON.stringify({
+          tab,viewed:iso(viewed),selected,financeMonth:$('#financeMonth').value,
+          clientSearch:$('#clientSearch').value,scrollY:window.scrollY
+        }));
+      } catch(err) { console.warn('Не удалось сохранить открытую вкладку',err) }
       window.location.reload();
     }else if(gesture==='horizontal'&&fromCalendar&&Math.abs(dx)>=65&&Math.abs(dx)>Math.abs(dy)*1.35&&tab==='calendar'){
       viewed=new Date(viewed.getFullYear(),viewed.getMonth()+(dx<0?1:-1),1);
@@ -403,6 +371,20 @@ $('#expenseForm').onsubmit=e=>{
 };
 
 applyAppearance();
-setTab('calendar');
+(function restoreAfterRefresh(){
+ let state=null;
+ try{
+  state=JSON.parse(sessionStorage.getItem('tattoo-crm-refresh-view')||'null');
+  sessionStorage.removeItem('tattoo-crm-refresh-view');
+ }catch(err){console.warn(err)}
+ if(state&&['calendar','clients','finance','settings'].includes(state.tab)){
+  if(/^\d{4}-\d{2}-\d{2}$/.test(state.viewed||'')){const [y,m]=state.viewed.split('-').map(Number);if(y>=2000&&m>=1&&m<=12)viewed=new Date(y,m-1,1)}
+  selected=state.selected||null;
+  if(state.financeMonth&&/^\d{4}-\d{2}$/.test(state.financeMonth))$('#financeMonth').value=state.financeMonth;
+  if(typeof state.clientSearch==='string')$('#clientSearch').value=state.clientSearch;
+  setTab(state.tab);
+  if(typeof state.scrollY==='number')requestAnimationFrame(()=>window.scrollTo(0,state.scrollY));
+ }else{setTab('calendar')}
+})();
 </script>
 </body></html>
