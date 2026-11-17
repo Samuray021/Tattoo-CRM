@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="ru">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#ffffff"><title>Tattoo CRM — Календарь и клиенты</title>
 <style>
 :root{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#252525;background:#f5f5f5}*{box-sizing:border-box}body{margin:0}button,input,textarea{font:inherit}button{cursor:pointer}button:disabled{opacity:.5;cursor:wait}
@@ -113,7 +113,7 @@ body.modal-open{overflow:hidden;touch-action:none}.shade.show.client-fullscreen{
 <p class="note">Получено — по отмеченным завершённым сеансам. Ожидаемые суммы — по незавершённым записям, не гарантированный доход. Диаграмма сравнивает показатели и не отражает денежный остаток. Финансы пока сохраняются только на этом устройстве.</p>
 </section><section id="clientsPage" class="hidden"><input id="clientSearch" class="search" type="search" placeholder="Поиск по имени или телефону" autocomplete="off"><div id="clientCount" class="count"></div><div id="clientList"></div></section>
 </main>
-<button class="add" id="add"><span class="plus">+</span><span id="addText">Добавить запись</span></button>
+<button class="add" id="add"><span id="addText">Добавить запись</span></button>
 <nav class="tabbar" aria-label="Разделы"><button class="active" id="calendarTab"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v4M17 3v4M3 10h18"/></svg>Календарь</button><button id="clientsTab"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21v-2a8 8 0 0 1 16 0v2"/></svg>Клиенты</button><button id="financeTab" type="button"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 9h10M7 13h6M7 17h4"/></svg>Финансы</button><button id="settingsTab" type="button"><svg viewBox="0 0 24 24"><path d="M4 7h16M4 17h16M8 4v6M16 14v6"/><circle cx="8" cy="7" r="2"/><circle cx="16" cy="17" r="2"/></svg>Настройки</button></nav>
 <div class="shade" id="shade"><section class="sheet" id="sheet">
 <div class="sheet-head"><h2 id="sheetTitle">Новый сеанс</h2><button id="close" aria-label="Закрыть">×</button></div>
@@ -135,7 +135,7 @@ body.modal-open{overflow:hidden;touch-action:none}.shade.show.client-fullscreen{
 </div>
 <div id="quickClientView" class="hidden"><form id="quickClientForm"><label class="field">Имя<input name="name" required></label><label class="field">Телефон<input name="phone" type="tel" placeholder="+7"></label><label class="field">Telegram<input name="telegram" placeholder="@username"></label><label class="field">Дата рождения<input name="birthday" type="date"></label><button class="primary" type="submit">Сохранить контакт</button><button class="secondary" id="quickClientBack" type="button">Назад к записи</button></form></div><div id="clientView" class="hidden">
 <div id="clientMeta"></div><div class="stats"><div class="stat"><small>Получено за сеансы</small><b id="clientRevenue">0 ₽</b></div><div class="stat"><small>Завершено сеансов</small><b id="clientSessions">0</b></div></div>
-<div class="detail-title">Комментарий о клиенте</div><div id="clientCommentDisplay" class="client-comment"></div><label class="field">Добавить или изменить комментарий<textarea id="clientCommentInput" rows="3" placeholder="Особенности, пожелания, замечания"></textarea></label><button id="saveClientComment" class="secondary" type="button">Сохранить комментарий</button><button id="deleteClient" class="secondary danger-action" type="button">Удалить контакт</button><button id="editClient" class="secondary">Изменить данные клиента</button><button id="newSession" class="primary">+ Новый сеанс для клиента</button>
+<div class="detail-title">Комментарий о клиенте</div><div id="clientCommentDisplay" class="client-comment"></div><label class="field">Добавить или изменить комментарий<textarea id="clientCommentInput" rows="3" placeholder="Особенности, пожелания, замечания"></textarea></label><button id="saveClientComment" class="secondary" type="button">Сохранить комментарий</button><button id="newSession" class="primary">Новый сеанс для клиента</button><button id="editClient" class="secondary">Изменить данные клиента</button><button id="deleteClient" class="secondary danger-action" type="button">Удалить контакт</button>
 <div class="detail-title">История сеансов</div><div id="clientHistory"></div>
 </div>
 <div id="editClientView" class="hidden"><form id="clientForm"><label class="field">Имя<input name="name" required></label><label class="field">Телефон<input type="tel" name="phone"></label><label class="field">Дата рождения<input type="date" name="birthday"></label><label class="field">Фото клиента (необязательно)<input id="clientPhotoInput" type="file" accept="image/*"></label><button type="button" class="secondary" id="removeClientPhoto">Удалить выбранное фото</button><p class="note">Без отдельного фото используется первый загруженный эскиз клиента.</p><button class="primary" type="submit">Сохранить клиента</button></form></div>
