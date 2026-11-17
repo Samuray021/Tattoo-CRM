@@ -80,6 +80,10 @@ body.modal-open{overflow:hidden;touch-action:none}.shade.show.client-fullscreen{
 #form .field{min-width:0}
 .client-comment{white-space:pre-wrap;overflow-wrap:anywhere;border:1px solid var(--stroke);background:var(--surface);padding:13px;border-radius:12px;margin:10px 0}
 .danger-action{color:#b33;border:1px solid #b33;background:transparent}
+/* iOS input focus zoom prevention: keep native pinch zoom enabled. */
+@supports (-webkit-touch-callout: none) {
+  input, textarea, select { font-size: 16px !important; }
+}
 </style>
 </head>
 <body>
