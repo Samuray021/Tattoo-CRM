@@ -1,0 +1,55 @@
+/* Tattoo CRM — luminous glass UI. Presentation only; no application state or handlers changed. */
+:root{--accent:#a38bff;--accent-contrast:#fff;--page:#101019;--canvas:#08090e;--ink:#f5f4ff;--muted:#a4a2ba;--surface:#1a1b29;--stroke:#38364c;--glass:rgba(27,27,42,.82);--input:#1b1c2a}
+html,html[data-theme="dark"],html[data-theme="light"]{color-scheme:dark;--page:#101019;--canvas:#08090e;--ink:#f5f4ff;--muted:#a4a2ba;--surface:#1a1b29;--stroke:#38364c;--glass:rgba(27,27,42,.82);--input:#1b1c2a}
+html{background:#08090e}
+body{background:radial-gradient(ellipse at 90% 0%,#4b153d 0%,transparent 37%),radial-gradient(ellipse at 0% 38%,#18254d 0%,transparent 46%),#08090e;color:var(--ink)}
+.app{background:linear-gradient(160deg,rgba(25,23,39,.92),rgba(12,13,23,.96) 48%,rgba(17,18,31,.96));box-shadow:0 0 70px #0008;position:relative;isolation:isolate}
+.app:before{content:"";position:absolute;inset:0 0 auto;height:320px;z-index:-1;pointer-events:none;background:radial-gradient(ellipse at 86% 15%,#ed3f7750,transparent 50%),radial-gradient(ellipse at 10% 60%,#5b47dd48,transparent 53%)}
+.top{height:92px;justify-content:flex-start}.top h1{font-size:29px;font-weight:750;letter-spacing:-1.2px;color:#fff}
+.months{margin-top:8px;background:#ffffff0b;border:1px solid #ffffff20;border-radius:20px;padding:8px 12px;backdrop-filter:blur(18px)}
+.months span{color:#e4dff3;font-size:14px;font-weight:650}.months button{color:#f5ecff}
+.week{color:#b4aec5;font-size:12px;letter-spacing:.05em}
+.dates{background:linear-gradient(145deg,#28213b9e,#141723d9);border:1px solid #ffffff20;border-radius:25px;padding:12px 6px;box-shadow:0 16px 36px #0003, inset 0 1px #ffffff1b}
+.day{color:#eae7f3}.day.weekend{color:#9995b0}
+.day.selected .number{background:linear-gradient(145deg,#fa5b8e,#9b5dff);color:#fff;box-shadow:0 0 19px #d45dfb77}
+.day.today:not(.selected) .number{color:#ff8da8;outline-color:#ff719c}
+.dot{background:#f98cbd;box-shadow:0 0 7px #f98cbd}
+.heading{color:#c2b9d3;font-size:12px;text-transform:uppercase;letter-spacing:.11em;margin:25px 0 13px}
+.event{border:1px solid #ffffff1a;border-radius:21px;padding:16px;margin:0 0 11px;min-height:85px;background:linear-gradient(115deg,#302344b8,#1a2139d4);box-shadow:0 12px 24px #0002;position:relative;overflow:hidden}
+.event:before{content:"";position:absolute;inset:0 auto 0 0;width:3px;background:linear-gradient(#ff729d,#8265f7)}
+.event h3{color:#fff;font-weight:650}.event p{color:#b8b0ca}
+.circle{border-color:#ab8ce8}.event.done .circle{background:#6bd7c0;border-color:#6bd7c0;box-shadow:0 0 12px #6bd7c055}
+.add{background:linear-gradient(110deg,#f0518c,#9958f0 60%,#6177e8);border:1px solid #ffffff55;color:#fff;font-weight:700;box-shadow:0 12px 35px #bc4ec35c;backdrop-filter:blur(22px)}
+.tabbar{background:#12121fe8;border-top:1px solid #ffffff29;box-shadow:0 -8px 36px #0005;backdrop-filter:blur(25px)}
+.tabbar button{color:#8e8ba7}.tabbar button.active{color:#ffa0d7}.tabbar button.active svg{filter:drop-shadow(0 0 7px #e57bf8)}
+.search,.finance-header input,.expense-form input{background:#202032;border:1px solid #ffffff2b;color:#fff;border-radius:17px;min-height:49px}
+.search::placeholder,.expense-form input::placeholder{color:#aaa4b9}
+.client-item{background:linear-gradient(120deg,#292039d9,#1c2336df);border:1px solid #ffffff24;border-radius:23px;box-shadow:0 12px 28px #0003;color:#fff}
+.client-item .avatar{background:linear-gradient(145deg,#a83c78,#38366e);color:#fff;border-color:#ffffff3b}
+.client-item strong{color:#fff}.client-item small,.client-item .session-note{color:#b9b2c7}.client-item .session-meta{color:#e6d7ef}.client-item .arrow{color:#f99bda}
+.shade{background:#03030acb;backdrop-filter:blur(12px)}
+.sheet,.client-fullscreen .sheet{background:radial-gradient(ellipse at 100% 0%,#532344 0%,transparent 42%),linear-gradient(160deg,#202033,#11131f 70%);color:#fff;border:1px solid #ffffff26;box-shadow:0 -16px 50px #0008}
+.sheet-head{background:transparent}.client-fullscreen .sheet-head{background:#1b1929f2;backdrop-filter:blur(16px);border-radius:12px}
+.sheet h2{font-size:23px;letter-spacing:-.5px}.sheet-head button{color:#fff}
+.field{color:#c4bfd4}.field input,.field textarea{background:#202033;color:#fff;border:1px solid #ffffff35;border-radius:15px}
+.field input:focus,.field textarea:focus,.search:focus{outline:2px solid #c879ff;outline-offset:1px}
+.primary,.appointment-action{background:linear-gradient(110deg,#f25190,#9e59ef 65%,#6b83f1);color:#fff;border:1px solid #ffffff38;box-shadow:0 8px 22px #a75beb3a;font-weight:650}
+.secondary{background:#ffffff12;color:#f4eefa;border:1px solid #ffffff24}
+.danger-action{color:#ff9aa8;border-color:#ff6c8d77;background:#ff426c10}
+.stat,.finance-card,.sketch-box,.client-comment{background:linear-gradient(135deg,#362442,#1b2336);border:1px solid #ffffff27;border-radius:20px;box-shadow:0 12px 26px #0002;color:#fff}
+.stat b,.finance-card strong{color:#fff}.stat small,.finance-card small{color:#c3b9d0}
+.finance-card:nth-child(2){background:linear-gradient(135deg,#193e51,#242247)}
+.finance-card:nth-child(3){background:linear-gradient(135deg,#4b243c,#261c31)}
+.finance-card:nth-child(4){background:linear-gradient(135deg,#2d3159,#1b2840)}
+.finance-section-title,.detail-title{color:#f5e9ff;letter-spacing:-.25px}
+.finance-legend-item,.client-suggestion{background:#ffffff10;border-color:#ffffff27;color:#fff}
+.finance-donut-center{background:#181824;color:#fff}
+.expense-item,.history{border-color:#ffffff26}.expense-item button{background:#ffffff12;border-color:#ffffff25;color:#fff}
+.theme-option{background:#ffffff0d;border-color:#ffffff29;color:#fff}.theme-option[aria-pressed="true"]{border-color:#d58cf9}
+.settings-help,.settings-current,.note,.empty,.count,.detail-meta,.history small{color:#bbb3c9}
+.sketch-picker{background:#ffffff16;color:#fff;border-color:#ffffff32}
+.client-fullscreen #clientMeta h3{font-size:25px;letter-spacing:-.5px}
+#clientCommentDisplay{line-height:1.6}
+#pullRefreshHint{background:#26223a;color:#fff;border-color:#ffffff33}
+@media(max-width:430px){.app{padding-left:18px;padding-right:18px}.top h1{font-size:27px}.finance-card{padding:15px 11px}.day{height:55px}}
+@media(prefers-reduced-motion:reduce){*,*:before,*:after{scroll-behavior:auto!important;animation:none!important;transition:none!important}}
