@@ -84,6 +84,19 @@ body.modal-open{overflow:hidden;touch-action:none}.shade.show.client-fullscreen{
 @supports (-webkit-touch-callout: none) {
   input, textarea, select { font-size: 16px !important; }
 }
+/* iOS Home Screen keyboard stability: prevent horizontal overflow and focus zoom. */
+html{width:100%;max-width:100%;overflow-x:clip;-webkit-text-size-adjust:100%;text-size-adjust:100%}
+body{width:100%;max-width:100%;overflow-x:clip}
+.app,.sheet,.shade,.field,#form{min-width:0;max-width:100%;box-sizing:border-box}
+.sheet{overscroll-behavior-x:none}
+input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),textarea,select,.search{
+  font-size:17px!important;line-height:1.35;min-width:0;max-width:100%;
+}
+input[type="date"],input[type="time"]{min-height:46px}
+.field input,.field textarea{box-sizing:border-box}
+@supports (-webkit-touch-callout:none){
+  input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),textarea,select,.search{font-size:17px!important}
+}
 </style>
 </head>
 <body>
