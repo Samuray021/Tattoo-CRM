@@ -5,7 +5,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="apple-touch-icon" href="./assets/icon-192.png">
-<meta name="theme-color" content="#ffffff"><title>Tattoo CRM — Календарь и клиенты</title>
+<meta name="theme-color" content="#151521"><title>Tattoo CRM — Календарь и клиенты</title>
 <style>
 @font-face{font-family:Manrope;src:url("./assets/Manrope.ttf") format("truetype");font-weight:200 800;font-display:swap}
 :root{font-family:Manrope,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#252525;background:#f5f5f5}*{box-sizing:border-box}body{margin:0}button,input,textarea{font:inherit}button{cursor:pointer}button:disabled{opacity:.5;cursor:wait}
@@ -106,16 +106,17 @@ input[type="date"],input[type="time"]{min-height:46px}
 <style>
 
 /* Unified mobile controls and gesture feedback */
-:root{--control-height:56px;--control-radius:16px;--control-gap:12px;--page-gutter:24px;--pull-offset:0px}
+:root{--control-height:56px;--control-radius:16px;--control-gap:12px;--page-gutter:24px;--pull-offset:0px;background-color:var(--canvas)}
 html,body{overscroll-behavior-y:none}
 .app,.sheet{padding-left:max(var(--page-gutter),env(safe-area-inset-left, 0px));padding-right:max(var(--page-gutter),env(safe-area-inset-right, 0px))}
-html{background-color:var(--status-bar-color,var(--canvas))}
 .app-top-background{display:none}
 @media(max-width:720px),(display-mode:standalone){
+ .app::before{z-index:-3}
+ .app::after{z-index:-2}
  .app-top-background{
   display:block;position:absolute;inset:0 0 auto;height:calc(env(safe-area-inset-top, 0px) + 76px);
   z-index:-1;pointer-events:none;
-  background:linear-gradient(var(--status-bar-color,var(--canvas)) env(safe-area-inset-top, 0px),transparent);
+  background:linear-gradient(var(--canvas) env(safe-area-inset-top, 0px),transparent);
  }
 }
 select{font-family:inherit}
@@ -375,13 +376,8 @@ function applyAppearance(){
   document.documentElement.style.setProperty('--accent',color.hex);
   document.documentElement.style.setProperty('--accent-contrast','#fff');
   document.documentElement.dataset.accent=appearance.accent;
-  // Tint the system chrome even when the browser paints it outside the page.
-  const base=resolvedTheme==='dark'?[33,28,48]:[255,243,237];
-  const blend=resolvedTheme==='dark'?.58:.3;
-  const rgb=base.map((channel,index)=>Math.round(channel*(1-blend)+parseInt(color.hex.slice(1+index*2,3+index*2),16)*blend));
-  const statusBarColor='rgb('+rgb.join(', ')+')';
-  document.documentElement.style.setProperty('--status-bar-color',statusBarColor);
-  document.querySelector('meta[name="theme-color"]').content=statusBarColor;
+  // iOS can draw its status bar with the root background instead of the theme color.
+  document.querySelector('meta[name="theme-color"]').content=getComputedStyle(document.documentElement).getPropertyValue('--canvas').trim();
   document.querySelectorAll('[data-theme-option]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.themeOption===appearance.theme)));
   document.querySelectorAll('[data-accent-option]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.accentOption===appearance.accent)));
   $('#currentAppearance').textContent=(appearance.theme==='system'?'Как в системе':appearance.theme==='dark'?'Тёмная':'Светлая')+' · '+color.name;
