@@ -172,10 +172,11 @@ body.pull-return .app,body.pull-return .tabbar,body.pull-return .add{transition:
 <div class="week"><span>П</span><span>В</span><span>С</span><span>Ч</span><span>П</span><span>С</span><span>В</span></div><div class="dates" id="dates"></div><section class="agenda" id="agenda"></section>
 </section>
 <section id="settingsPage" class="hidden"><div class="settings-section"><h2 class="settings-heading">Оформление</h2><div class="theme-options"><button type="button" data-theme-option="system" class="theme-option" aria-pressed="false"><span class="theme-preview system"></span>Как в системе</button><button type="button" class="theme-option" data-theme-option="light" aria-pressed="true"><span class="theme-preview light"></span>Светлая</button><button type="button" class="theme-option" data-theme-option="dark" aria-pressed="false"><span class="theme-preview dark"></span>Тёмная</button></div></div><div class="settings-section"><h2 class="settings-heading">Цветовой акцент</h2><div id="accentOptions" class="accent-options" role="group" aria-label="Цветовой акцент"></div><p class="settings-help">Цвет меняет всю палитру приложения, включая фоновое неоновое свечение.</p><div class="settings-current" id="currentAppearance"></div></div>
-<section id="googleSyncSettings" class="settings-section" aria-labelledby="googleSyncHeading">
+<section id="googleSyncSettings" class="settings-section" aria-labelledby="googleSyncHeading" data-google-client-id="">
   <h2 class="settings-heading" id="googleSyncHeading">Синхронизация с Google</h2>
   <p id="googleStatus" class="settings-help" role="status">Загружаем настройки синхронизации…</p>
-  <button id="googleConnect" class="primary" type="button" disabled>Подключить Google</button>
+  <p id="googleSyncDisclosure" class="settings-help hidden">После входа карточки клиентов и их фото будут синхронизироваться с твоим Google Диском.</p>
+  <button id="googleConnect" class="primary" type="button" disabled>Войти через Google</button>
   <button id="googleTransfer" class="primary hidden" type="button">Начать синхронизацию</button>
   <button id="googleKeepLocal" class="secondary hidden" type="button">Сохранить версии с устройства</button>
   <button id="googleKeepRemote" class="secondary hidden" type="button">Сохранить версии из Google</button>
@@ -555,7 +556,7 @@ applyAppearance();
   if(typeof state.scrollY==='number')requestAnimationFrame(()=>window.scrollTo(0,state.scrollY));
  }else{setTab('calendar')}
 })();
-import('./google-sync.js?v=1').then(({mountGoogleSync}) => {
+import('./google-sync.js?v=2').then(({mountGoogleSync}) => {
   googleSync = mountGoogleSync($('#googleSyncSettings'), {
     clients: () => structuredClone(clients),
     getPhoto: id => imageOperation('get', 'client-photo-' + id),

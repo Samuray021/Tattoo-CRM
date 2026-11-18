@@ -226,6 +226,12 @@ export function mountGoogleSync(panel, local) {
   const restoreButton = element('googleKeepRemote');
   const workbookLink = element('googleWorkbook');
   const status = element('googleStatus');
+  const savedClientId = localStorage.getItem(clientIdKey) || '';
+  const initialState = loadState();
+  const pairedClientId = initialState.account ? initialState.oauthClientId || savedClientId : '';
+  const sharedClientId = panel.dataset.googleClientId.trim();
+  const useSharedClient = Boolean(sharedClientId && (!pairedClientId || pairedClientId === sharedClientId));
+  const configuredClientId = useSharedClient ? sharedClientId : pairedClientId || savedClientId;
   let oauthClient;
   let session;
   let loading = false;
@@ -266,7 +272,7 @@ export function mountGoogleSync(panel, local) {
   function reportError(error) {
     if (error.status === 401) {
       clearSession();
-      tell('Доступ к Google истёк. Подключи Google, чтобы продолжить синхронизацию.');
+      tell('Доступ к Google истёк. Войди через Google, чтобы продолжить синхронизацию.');
     } else if (error.status === 403) {
       tell('Google отклонил запрос. Проверь разрешение на файлы и включение Drive API и Sheets API.');
     } else if (error.status === 429 || error.status >= 500 || error.name === 'TimeoutError' || error instanceof TypeError) {
@@ -291,6 +297,7 @@ export function mountGoogleSync(panel, local) {
       if (!profile.sub) throw new Error('Google не вернул идентификатор аккаунта.');
       const state = loadState();
       if (state.account && state.account !== profile.sub) throw new Error('Это устройство связано с другим аккаунтом Google. Войди в ранее подключённый аккаунт.');
+      if (useSharedClient) saveState({enabled: true, account: profile.sub, oauthClientId: sharedClientId});
       session = {...candidate, account: profile.sub, email: profile.email || ''};
       expiresTimer = setTimeout(() => {
         clearSession();
@@ -303,13 +310,14 @@ export function mountGoogleSync(panel, local) {
       working = false;
       refreshControls();
     }
-    if (session && loadState().enabled) synchronize();
+    if (!session) return;
+    if (loadState().enabled) synchronize();
   }
 
   async function setup(clientId) {
     oauthClient = undefined;
     if (!clientId) {
-      tell('Чтобы подключить Google, сначала укажи OAuth Client ID.');
+      tell('Вход через Google ещё не настроен. Для активации нужен Client ID приложения.');
       refreshControls();
       return;
     }
@@ -337,7 +345,7 @@ export function mountGoogleSync(panel, local) {
           refreshControls();
         }
       });
-      tell(loadState().enabled ? 'Подключи Google, чтобы продолжить синхронизацию.' : 'Можно подключить Google.');
+      tell(loadState().enabled ? 'Войди через Google, чтобы продолжить синхронизацию.' : 'Синхронизация с Google выключена.');
     } catch (error) {
       tell(error.message);
     } finally {
@@ -357,7 +365,7 @@ export function mountGoogleSync(panel, local) {
     clearTimeout(timer);
     if (!loadState().enabled) return;
     if (!session) {
-      tell('Изменения сохранены на устройстве. Подключи Google для синхронизации.');
+      tell('Изменения сохранены на устройстве. Войди через Google для синхронизации.');
       return;
     }
     if (working) retryAfterRun = true;
@@ -493,8 +501,9 @@ export function mountGoogleSync(panel, local) {
       tell('Укажи OAuth Client ID веб-приложения из Google Cloud.');
       return;
     }
-    const previous = localStorage.getItem(clientIdKey);
-    if (loadState().account && previous !== clientId) {
+    const state = loadState();
+    const previous = state.oauthClientId || localStorage.getItem(clientIdKey);
+    if (state.account && previous !== clientId) {
       tell('На этом устройстве уже настроена синхронизация с другим OAuth Client ID.');
       return;
     }
@@ -519,7 +528,7 @@ export function mountGoogleSync(panel, local) {
     if (!session) return;
     if (!loadState().enabled) {
       if (!confirm('Подключить синхронизацию карточек и фотографий клиентов с этим аккаунтом Google? Существующие данные могут быть отправлены на Google Диск.')) return;
-      saveState({enabled: true, account: session.account});
+      saveState({enabled: true, account: session.account, oauthClientId: localStorage.getItem(clientIdKey)});
     }
     synchronize();
   });
@@ -539,9 +548,11 @@ export function mountGoogleSync(panel, local) {
   window.addEventListener('online', trySync);
   document.addEventListener('visibilitychange', trySync);
   setInterval(trySync, 60000);
-  const configured = localStorage.getItem(clientIdKey) || '';
-  clientIdInput.value = configured;
-  if (configured) settings.closest('details').open = false;
-  setup(configured);
+  const setupDetails = settings.closest('details');
+  setupDetails.hidden = useSharedClient;
+  clientIdInput.value = pairedClientId || savedClientId;
+  if (configuredClientId) setupDetails.open = false;
+  element('googleSyncDisclosure').classList.toggle('hidden', !useSharedClient);
+  setup(configuredClientId);
   return {changed: schedule, photoChanged: notePhoto};
 }
