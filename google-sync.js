@@ -1,3 +1,5 @@
+import {reportRequests, reportTables, workPhotoTypes} from './google-report.js?v=1';
+
 const driveScope = 'https://www.googleapis.com/auth/drive.file';
 const drive = 'https://www.googleapis.com/drive/v3';
 const sheets = 'https://sheets.googleapis.com/v4/spreadsheets';
@@ -118,7 +120,7 @@ function googleStorage(session) {
     const worksheet = info.sheets?.find(item => item.properties.title === 'Клиенты') || info.sheets?.[0];
     if (!worksheet) throw new Error('В Google Таблице нет листа для клиентов.');
     const {sheetId, title} = worksheet.properties;
-    const workbook = {id, title, photos};
+    const workbook = {id, title, photos, root};
     const {values} = await request(serviceUrl(sheets, '/' + id + '/values/' + encodeURIComponent("'" + title.replaceAll("'", "''") + "'!A1:I1")));
     if (!values?.length) {
       if (title !== 'Клиенты') {
@@ -180,13 +182,22 @@ function googleStorage(session) {
 
   async function putPhoto(id, hash, blob) {
     const {photos} = await openWorkbook();
-    const role = 'client-photo-v1';
-    const existing = await findFile(role, photos, "appProperties has { key='tattooPhoto' and value='" + id + ':' + hash + "' }");
+    return putImage(photos, 'client-photo-v1', id, hash, blob, id);
+  }
+
+  async function putWorkPhoto(id, hash, blob, name) {
+    const {photos} = await openWorkbook();
+    session.workFolder ||= await findOrCreate('work-photos-v1', 'Эскизы и фото работ', folderType, photos);
+    return putImage(session.workFolder, 'work-photo-v1', id, hash, blob, name);
+  }
+
+  async function putImage(parent, role, id, hash, blob, name) {
+    const existing = await findFile(role, parent, "appProperties has { key='tattooPhoto' and value='" + id + ':' + hash + "' }");
     if (existing) return existing;
     const boundary = 'tattoo-' + crypto.randomUUID();
     const extension = {'image/jpeg': '.jpg', 'image/png': '.png', 'image/webp': '.webp', 'image/heic': '.heic', 'image/gif': '.gif'}[blob.type] || '';
     const metadata = {
-      name: id + extension, mimeType: blob.type, parents: [photos],
+      name: name + extension, mimeType: blob.type, parents: [parent],
       appProperties: {tattooRole: role, tattooPhoto: id + ':' + hash}
     };
     const body = new Blob([
@@ -198,6 +209,19 @@ function googleStorage(session) {
       uploadType: 'multipart', fields: 'id'
     }), {method: 'POST', body, type: 'multipart/related; boundary=' + boundary});
     return response.id;
+  }
+
+  async function writeReport(deviceId, tables, previousId, unchanged) {
+    const {root} = await openWorkbook();
+    const id = await findOrCreate('report-' + deviceId, 'Отчёт Tattoo CRM · ' + deviceId.slice(0, 8), sheetType, root);
+    if (unchanged && id === previousId) return id;
+    const info = await request(serviceUrl(sheets, '/' + id, {fields: 'sheets(properties(sheetId,title))'}));
+    const requests = reportRequests(tables, (info.sheets || []).map(sheet => sheet.properties));
+    await request(sheets + '/' + id + ':batchUpdate', {
+      method: 'POST',
+      json: {requests: [{updateSpreadsheetProperties: {properties: {locale: 'ru_RU'}, fields: 'locale'}}, ...requests]}
+    });
+    return id;
   }
 
   async function getPhoto(id, expectedHash) {
@@ -222,7 +246,7 @@ function googleStorage(session) {
     await request(serviceUrl(drive, path, {fields: 'trashed'}), {method: 'PATCH', json: {trashed: true}});
   }
 
-  return {profile: () => request('https://openidconnect.googleapis.com/v1/userinfo'), listClients, writeClient, putPhoto, getPhoto, trashPhoto};
+  return {profile: () => request('https://openidconnect.googleapis.com/v1/userinfo'), listClients, writeClient, putPhoto, getPhoto, trashPhoto, putWorkPhoto, writeReport};
 }
 
 export function mountGoogleSync(panel, local) {
@@ -235,6 +259,8 @@ export function mountGoogleSync(panel, local) {
   const keepButton = element('googleKeepLocal');
   const restoreButton = element('googleKeepRemote');
   const workbookLink = element('googleWorkbook');
+  const reportLink = element('googleReportLink');
+  const reportToggle = element('googleReportToggle');
   const status = element('googleStatus');
   const savedClientId = localStorage.getItem(clientIdKey) || '';
   const initialState = loadState();
@@ -270,6 +296,10 @@ export function mountGoogleSync(panel, local) {
     }
     workbookLink.classList.toggle('hidden', !session?.workbook);
     if (session?.workbook) workbookLink.href = 'https://docs.google.com/spreadsheets/d/' + session.workbook.id + '/edit';
+    reportToggle.checked = Boolean(state.reportEnabled);
+    reportToggle.disabled = working;
+    reportLink.classList.toggle('hidden', !state.reportId);
+    if (safeId.test(state.reportId || '')) reportLink.href = 'https://docs.google.com/spreadsheets/d/' + state.reportId + '/edit';
   }
 
   function clearSession() {
@@ -473,9 +503,60 @@ export function mountGoogleSync(panel, local) {
         saveState({retiredPhotos: remaining});
       }
     }
-    if (conflicts) tell('Есть несовпадения в карточках (' + conflicts + '). Выбери, какую версию сохранить. Карточки с локальными сеансами нельзя удалить из Google автоматически.');
-    else if (deferred) tell('Загрузка изменений продолжится после закрытия карточки.');
-    else tell('Синхронизировано ' + new Date().toLocaleTimeString('ru-RU', {hour: '2-digit', minute: '2-digit'}) + '.');
+    if (conflicts) return 'Есть несовпадения в карточках (' + conflicts + '). Выбери, какую версию сохранить.';
+    if (deferred) return 'Загрузка изменений продолжится после закрытия карточки.';
+  }
+
+  async function syncReport(active, version) {
+    const state = loadState();
+    if (!state.reportEnabled) return;
+    const device = state.reportDevice || crypto.randomUUID();
+    if (!state.reportDevice) saveState({reportDevice: device});
+    const storage = googleStorage(active);
+    const dataset = local.reportData();
+    const keys = new Set(await local.workPhotoKeys());
+    const saved = state.workPhotos || {};
+    const uploaded = {};
+    for (const appointment of dataset.appointments) {
+      if (!safeClientId.test(appointment.id || '')) continue;
+      for (const [prefix, label] of workPhotoTypes) {
+        const key = prefix + appointment.id;
+        if (!keys.has(key)) continue;
+        if (session !== active || localVersion !== version) return;
+        const marker = state.workChanges?.[key];
+        const existing = saved[key];
+        if (existing?.marker === marker && existing?.fileId) {
+          uploaded[key] = existing;
+          continue;
+        }
+        const blob = await local.workPhoto(key);
+        if (!blob || !blob.type.startsWith('image/') || blob.size > maxPhotoSize) continue;
+        const hash = await photoHash(blob);
+        if (session !== active || localVersion !== version) return;
+        const name = [appointment.date, label, appointment.id.slice(0, 8), hash.slice(0, 8)].join(' — ');
+        const fileId = await storage.putWorkPhoto(key, hash, blob, name);
+        uploaded[key] = {fileId, marker};
+        saveState({workPhotos: {...loadState().workPhotos, [key]: uploaded[key]}});
+      }
+    }
+    if (session !== active || localVersion !== version) return;
+    dataset.appointments = dataset.appointments.filter(appointment =>
+      !appointment.demo || workPhotoTypes.some(([prefix]) => keys.has(prefix + appointment.id)));
+    const tables = reportTables(dataset, uploaded);
+    const hash = await photoHash(new Blob([JSON.stringify(tables)]));
+    if (session !== active || localVersion !== version) return;
+    const id = await storage.writeReport(device, tables, state.reportId, state.reportHash === hash);
+    saveState({reportId: id, reportHash: hash, workPhotos: uploaded});
+  }
+
+  async function syncAll(active, resolution) {
+    const version = localVersion;
+    const message = await syncClients(active, resolution);
+    if (session !== active || localVersion !== version) return;
+    await syncReport(active, version);
+    if (session === active && localVersion === version) {
+      tell(message || 'Синхронизировано ' + new Date().toLocaleTimeString('ru-RU', {hour: '2-digit', minute: '2-digit'}) + '.');
+    }
   }
 
   async function synchronize(resolution) {
@@ -492,11 +573,11 @@ export function mountGoogleSync(panel, local) {
       if (navigator.locks) {
         const ran = await navigator.locks.request('tattoo-crm-google', {ifAvailable: true}, async lock => {
           if (!lock) return false;
-          await syncClients(active, resolution);
+          await syncAll(active, resolution);
           return true;
         });
         if (!ran) tell('Синхронизация уже идёт в другой вкладке.');
-      } else await syncClients(active, resolution);
+      } else await syncAll(active, resolution);
     } catch (error) {
       reportError(error);
     } finally {
@@ -560,6 +641,10 @@ export function mountGoogleSync(panel, local) {
   restoreButton.addEventListener('click', () => {
     if (confirm('Заменить конфликтующие версии карточек на этом устройстве версиями из Google?')) synchronize('remote');
   });
+  reportToggle.addEventListener('change', () => {
+    saveState({reportEnabled: reportToggle.checked});
+    schedule();
+  });
   const trySync = () => { if (!document.hidden) synchronize(); };
   window.addEventListener('online', trySync);
   document.addEventListener('visibilitychange', trySync);
@@ -570,5 +655,9 @@ export function mountGoogleSync(panel, local) {
   if (configuredClientId) setupDetails.open = false;
   element('googleSyncDisclosure').classList.toggle('hidden', !useSharedClient);
   setup(configuredClientId);
-  return {changed: schedule, photoChanged: notePhoto};
+  return {changed: schedule, photoChanged: notePhoto, workPhotoChanged(key) {
+    const state = loadState();
+    if (state.reportDevice) saveState({workChanges: {...state.workChanges, [key]: crypto.randomUUID()}});
+    schedule();
+  }};
 }

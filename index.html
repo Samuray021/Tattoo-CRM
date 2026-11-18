@@ -120,7 +120,7 @@ html,body{overscroll-behavior-y:none}
  }
 }
 select{font-family:inherit}
-#googleWorkbook{color:var(--ink-accent,var(--ink))}
+#googleWorkbook,#googleReportLink{color:var(--ink-accent,var(--ink))}
 .day .number,.finance-card strong,.expense-form input[inputmode="decimal"]{font-variant-numeric:tabular-nums}
 @media(display-mode:standalone){.app,.tabbar{max-width:none}}
 .app{display:flow-root}
@@ -182,6 +182,9 @@ body.pull-return .app,body.pull-return .tabbar,body.pull-return .add{transition:
   <button id="googleKeepRemote" class="secondary hidden" type="button">Сохранить версии из Google</button>
   <button id="googleDisconnect" class="secondary hidden" type="button">Приостановить синхронизацию</button>
   <p><a id="googleWorkbook" class="hidden" href="#" target="_blank" rel="noopener noreferrer">Открыть таблицу клиентов</a></p>
+  <label class="settings-help"><input id="googleReportToggle" type="checkbox"> Автовыгрузка сеансов, фото работ и финансов</label>
+  <p class="settings-help">При включении CRM выгружает данные этого устройства в отдельный отчёт и сохраняет копии эскизов и фото на Google Диске.</p>
+  <p><a id="googleReportLink" class="hidden" href="#" target="_blank" rel="noopener noreferrer">Открыть отчёт Tattoo CRM</a></p>
   <details>
     <summary>Настройка подключения</summary>
       <p class="settings-help">Укажи OAuth Client ID веб-приложения из Google Cloud. Доступ к таблице и фотографиям подтверждается в окне Google.</p>
@@ -225,7 +228,7 @@ body.pull-return .app,body.pull-return .tabbar,body.pull-return .add{transition:
 <input type="hidden" name="discount" value="0">
 <label class="field">Описание работы<textarea name="notes" rows="2" placeholder="Что будем делать"></textarea></label>
 <div class="appointment-actions"><label class="appointment-action">Загрузить эскиз<input id="sketchInput" type="file" accept="image/*"></label><button class="appointment-action" id="appointmentAddContact" type="button">Добавить контакт</button></div><img id="sketchPreview" class="sketch-preview" alt="Эскиз"><button id="sketchRemove" class="sketch-remove" type="button">Удалить эскиз</button>
-<p class="note">Сеанс и его эскиз сохраняются в этом браузере.</p>
+<p class="note">Сеанс и эскиз сохраняются на устройстве. Выгрузку в Google можно включить в настройках.</p>
 <button class="primary" type="submit">Сохранить запись</button><button class="secondary" type="button" id="completed" hidden>Отметить сеанс завершённым</button><button class="secondary" type="button" id="cancelSession" hidden>Отменить сеанс</button><button class="secondary" type="button" id="rescheduleButton" hidden>Перенести сеанс</button>
 </form>
 <div id="rescheduleView" class="hidden"><p class="note">Выбери новую дату и время. Данные клиента, стоимость и эскиз сохранятся без изменений.</p><form id="rescheduleForm"><label class="field">Новая дата<input name="date" type="date" required></label><label class="field">Новое время<input name="time" type="time" required></label><button class="primary" type="submit">Подтвердить перенос</button><button class="secondary" type="button" id="rescheduleCancel">Отмена</button></form></div>
@@ -235,7 +238,7 @@ body.pull-return .app,body.pull-return .tabbar,body.pull-return .add{transition:
 <div class="detail-title">Комментарий о клиенте</div><button id="clientCommentDisplay" class="client-comment client-comment-button" type="button" aria-label="Добавить или изменить комментарий">Комментариев пока нет</button><div id="clientCommentEditor" class="client-comment-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="clientCommentDialogTitle"><div class="client-comment-dialog"><h3 id="clientCommentDialogTitle">Комментарий о клиенте</h3><label class="field">Комментарий<textarea id="clientCommentInput" rows="4" placeholder="Особенности, пожелания, замечания"></textarea></label><div class="client-comment-actions"><button id="cancelClientComment" class="secondary" type="button">Отмена</button><button id="saveClientComment" class="primary" type="button">Сохранить</button></div></div></div><button id="newSession" class="primary">Новый сеанс для клиента</button><button id="editClient" class="secondary">Изменить данные клиента</button><button id="deleteClient" class="secondary danger-action" type="button">Удалить контакт</button>
 <div class="detail-title">История сеансов</div><div id="clientHistory"></div>
 </div>
-<div id="sessionGalleryView" class="hidden"><div id="sessionGalleryInfo" class="detail-meta"></div><div id="sessionGalleryPhotos"></div><p class="note">Фотографии хранятся на этом устройстве. Для переноса на другое устройство потребуется облачное хранилище.</p></div><div id="editClientView" class="hidden"><form id="clientForm"><label class="field">Имя<input name="name" required></label><label class="field">Телефон<input type="tel" name="phone"></label><label class="field">Дата рождения<input type="date" name="birthday"></label><label class="field">Фото клиента (необязательно)<input id="clientPhotoInput" type="file" accept="image/*"></label><button type="button" class="secondary" id="removeClientPhoto">Удалить выбранное фото</button><p class="note">Без отдельного фото используется первый загруженный эскиз клиента.</p><button class="primary" type="submit">Сохранить клиента</button></form></div>
+<div id="sessionGalleryView" class="hidden"><div id="sessionGalleryInfo" class="detail-meta"></div><div id="sessionGalleryPhotos"></div><p class="note">Фото сохраняются на устройстве. Если включена автовыгрузка, копии также попадают на Google Диск.</p></div><div id="editClientView" class="hidden"><form id="clientForm"><label class="field">Имя<input name="name" required></label><label class="field">Телефон<input type="tel" name="phone"></label><label class="field">Дата рождения<input type="date" name="birthday"></label><label class="field">Фото клиента (необязательно)<input id="clientPhotoInput" type="file" accept="image/*"></label><button type="button" class="secondary" id="removeClientPhoto">Удалить выбранное фото</button><p class="note">Без отдельного фото используется первый загруженный эскиз клиента.</p><button class="primary" type="submit">Сохранить клиента</button></form></div>
 </section></div>
 <script>
 'use strict';
@@ -294,7 +297,7 @@ function seedDemo(){
 seedDemo();
 reconcile();
 const dbPromise=new Promise((resolve,reject)=>{const request=indexedDB.open('tattoo-crm-sketches',1);request.onupgradeneeded=()=>{if(!request.result.objectStoreNames.contains('images'))request.result.createObjectStore('images')};request.onsuccess=()=>resolve(request.result);request.onerror=()=>reject(request.error)});
-async function imageOperation(mode,id,blob,fromGoogle=false){const db=await dbPromise;const result=await new Promise((resolve,reject)=>{const tx=db.transaction('images',mode==='get'?'readonly':'readwrite'),store=tx.objectStore('images');let request;if(mode==='get'){request=store.get(id);request.onsuccess=()=>resolve(request.result)}else{mode==='put'?store.put(blob,id):store.delete(id);tx.oncomplete=()=>resolve()}tx.onerror=()=>reject(tx.error);if(request)request.onerror=()=>reject(request.error)});if(!fromGoogle&&mode!=='get'&&id.startsWith('client-photo-'))googleSync?.photoChanged(id.slice('client-photo-'.length));return result}
+async function imageOperation(mode,id,blob,fromGoogle=false){const db=await dbPromise;const result=await new Promise((resolve,reject)=>{const tx=db.transaction('images',mode==='get'?'readonly':'readwrite'),store=tx.objectStore('images');let request;if(mode==='get'){request=store.get(id);request.onsuccess=()=>resolve(request.result)}else{mode==='put'?store.put(blob,id):store.delete(id);tx.oncomplete=()=>resolve()}tx.onerror=()=>reject(tx.error);if(request)request.onerror=()=>reject(request.error)});if(!fromGoogle&&mode!=='get'){if(id.startsWith('client-photo-'))googleSync?.photoChanged(id.slice('client-photo-'.length));else googleSync?.workPhotoChanged(id)}return result}
 function preview(blob){if(sketchUrl)URL.revokeObjectURL(sketchUrl);sketchUrl=blob?URL.createObjectURL(blob):null;$('#sketchPreview').src=sketchUrl||'';$('#sketchPreview').classList.toggle('visible',!!blob);$('#sketchRemove').classList.toggle('visible',!!blob)}
 function render(){if(tab==='calendar')renderCalendar();else if(tab==='clients')renderClients();else if(tab==='finance')renderFinance()}
 function renderCalendar(){const y=viewed.getFullYear(),m=viewed.getMonth();$('#title').textContent=months[m];$('#year').textContent=y;const grid=$('#dates');grid.replaceChildren();const first=(new Date(y,m,1).getDay()+6)%7;for(let i=0;i<first;i++)grid.append(document.createElement('div'));const count=new Date(y,m+1,0).getDate();for(let day=1;day<=count;day++){const d=iso(new Date(y,m,day)),button=document.createElement('button');button.className='day'+([0,6].includes(new Date(y,m,day).getDay())?' weekend':'')+(d===iso(now)?' today':'')+(selected===d?' selected':'');const num=document.createElement('span');num.className='number';num.textContent=day;const dot=document.createElement('span');dot.className=appointments.some(x=>x.date===d)?'dot':'no-dot';button.append(num,dot);button.onclick=()=>{selected=selected===d?null:d;render()};grid.append(button)}
@@ -516,7 +519,7 @@ function renderFinance(){
   const info=document.createElement('div'),title=document.createElement('strong'),sub=document.createElement('small');
   title.textContent=money(expense.amount);sub.textContent=expense.date.split('-').reverse().join('.')+' · '+expense.note;info.append(title,sub);
   const del=document.createElement('button');del.type='button';del.textContent='Удалить';del.setAttribute('aria-label','Удалить расход');
-  del.onclick=()=>{if(!confirm('Удалить этот расход?'))return;const updated=expenses.filter(e=>e.id!==expense.id);try{localStorage.setItem(expenseStoreKey,JSON.stringify(updated));expenses=updated;renderFinance()}catch(err){alert('Не удалось удалить расход')}};
+  del.onclick=()=>{if(!confirm('Удалить этот расход?'))return;const updated=expenses.filter(e=>e.id!==expense.id);try{localStorage.setItem(expenseStoreKey,JSON.stringify(updated));expenses=updated;googleSync?.changed();renderFinance()}catch(err){alert('Не удалось удалить расход')}};
   row.append(info,del);list.append(row)
  }
  if(!costs.length){const empty=document.createElement('p');empty.className='empty';empty.textContent='Расходов за этот месяц нет';list.append(empty)}
@@ -536,7 +539,7 @@ $('#expenseForm').onsubmit=e=>{
  const date=month===today.slice(0,7)?today:month+'-01',n=Number($('#expenseAmount').value),note=$('#expenseNote').value.trim();
  if(!date||!Number.isFinite(n)||n<=0||!note)return;
  const updated=[...expenses,{id:crypto.randomUUID(),date,amount:n,note}];
- try{localStorage.setItem(expenseStoreKey,JSON.stringify(updated));expenses=updated;$('#expenseAmount').value='';$('#expenseNote').value='';$('#financeMonth').value=date.slice(0,7);renderFinance()}
+ try{localStorage.setItem(expenseStoreKey,JSON.stringify(updated));expenses=updated;$('#expenseAmount').value='';$('#expenseNote').value='';$('#financeMonth').value=date.slice(0,7);googleSync?.changed();renderFinance()}
  catch(err){alert('Не удалось сохранить расход: проверь место на устройстве')}
 };
 
@@ -556,9 +559,19 @@ applyAppearance();
   if(typeof state.scrollY==='number')requestAnimationFrame(()=>window.scrollTo(0,state.scrollY));
  }else{setTab('calendar')}
 })();
-import('./google-sync.js?v=3').then(({mountGoogleSync}) => {
+import('./google-sync.js?v=4').then(({mountGoogleSync}) => {
   googleSync = mountGoogleSync($('#googleSyncSettings'), {
     clients: () => structuredClone(clients),
+    reportData: () => structuredClone({clients, appointments, expenses}),
+    workPhoto: id => imageOperation('get', id),
+    async workPhotoKeys() {
+      const db = await dbPromise;
+      return new Promise((resolve, reject) => {
+        const request = db.transaction('images', 'readonly').objectStore('images').getAllKeys();
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error);
+      });
+    },
     getPhoto: id => imageOperation('get', 'client-photo-' + id),
     hasSessions: id => appointments.some(appointment => appointment.clientId === id),
     isEditing: () => $('#shade').classList.contains('show'),
