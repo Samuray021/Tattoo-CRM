@@ -13,9 +13,16 @@ const hexDigest = /^[a-f0-9]{64}$/;
 const maxPhotoSize = 15 * 1024 * 1024;
 
 class GoogleError extends Error {
-  constructor(status) {
+  constructor(status, url, responseError) {
     super('Google API: ' + status);
     this.status = status;
+    const {hostname, pathname} = new URL(url);
+    this.service = hostname === 'sheets.googleapis.com' ? 'Google Sheets API'
+      : pathname.includes('/drive/v3/') ? 'Google Drive API' : 'Вход через Google';
+    this.reasons = new Set([
+      ...(responseError?.details || []).map(detail => detail.reason),
+      ...(responseError?.errors || []).map(detail => detail.reason)
+    ].filter(reason => typeof reason === 'string' && /^[a-zA-Z0-9_]{1,80}$/.test(reason)));
   }
 }
 
@@ -63,7 +70,10 @@ function googleStorage(session) {
     const response = await fetch(url, {
       method, headers, body, signal: AbortSignal.timeout(45000), cache: 'no-store'
     });
-    if (!response.ok) throw new GoogleError(response.status);
+    if (!response.ok) {
+      const data = await response.json().catch(() => null);
+      throw new GoogleError(response.status, url, data?.error);
+    }
     if (binary) return response.blob();
     if (response.status !== 204) return response.json();
   }
@@ -273,8 +283,14 @@ export function mountGoogleSync(panel, local) {
     if (error.status === 401) {
       clearSession();
       tell('Доступ к Google истёк. Войди через Google, чтобы продолжить синхронизацию.');
+    } else if (error.status === 403 && (error.reasons.has('SERVICE_DISABLED') || error.reasons.has('accessNotConfigured'))) {
+      tell(error.service + ' отключён. Включи этот API в том проекте Google Cloud, где создан Client ID CRM.');
+    } else if (error.status === 403 && (error.reasons.has('ACCESS_TOKEN_SCOPE_INSUFFICIENT') || error.reasons.has('insufficientPermissions'))) {
+      clearSession();
+      tell('Google не выдал доступ к файлам CRM. Войди снова и разреши доступ к файлам приложения.');
     } else if (error.status === 403) {
-      tell('Google отклонил запрос. Проверь разрешение на файлы и включение Drive API и Sheets API.');
+      const reason = [...error.reasons].join(', ');
+      tell(error.service + ' отклонил запрос (403' + (reason ? ', ' + reason : '') + ').');
     } else if (error.status === 429 || error.status >= 500 || error.name === 'TimeoutError' || error instanceof TypeError) {
       tell('Google пока недоступен. Изменения остались на устройстве, CRM повторит попытку.');
     } else {

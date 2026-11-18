@@ -556,7 +556,7 @@ applyAppearance();
   if(typeof state.scrollY==='number')requestAnimationFrame(()=>window.scrollTo(0,state.scrollY));
  }else{setTab('calendar')}
 })();
-import('./google-sync.js?v=2').then(({mountGoogleSync}) => {
+import('./google-sync.js?v=3').then(({mountGoogleSync}) => {
   googleSync = mountGoogleSync($('#googleSyncSettings'), {
     clients: () => structuredClone(clients),
     getPhoto: id => imageOperation('get', 'client-photo-' + id),
