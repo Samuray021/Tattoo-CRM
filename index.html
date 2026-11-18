@@ -99,6 +99,51 @@ input[type="date"],input[type="time"]{min-height:46px}
 }
 \n#clientForm .field,#quickClientForm .field{width:100%;min-width:0;max-width:100%;box-sizing:border-box}\n#clientForm input,#quickClientForm input{display:block;width:100%;min-width:0;max-width:100%;box-sizing:border-box}\n</style>
 <link rel="stylesheet" href="./neon-theme.css?v=1">
+<style>
+
+/* Unified mobile controls and gesture feedback */
+:root{--control-height:56px;--control-radius:16px;--control-gap:12px;--page-gutter:24px;--pull-offset:0px}
+html,body{overscroll-behavior-y:none}
+.app,.sheet{padding-left:var(--page-gutter);padding-right:var(--page-gutter)}
+.app{display:flow-root}
+#financePage{display:flow-root;padding-top:22px}
+#financePage .finance-page-title{margin:0 0 17px}
+.app[data-tab="finance"]>.top{display:none}
+.finance-header,.months{width:100%;height:var(--control-height);min-height:var(--control-height);border:1px solid var(--stroke);border-radius:var(--control-radius);background:var(--glass);padding:0 8px;display:grid;grid-template-columns:44px minmax(0,1fr) 44px;align-items:center;gap:0}
+.finance-header button,.months button{width:44px;height:44px;border:0;background:transparent;color:var(--ink);font-size:30px;line-height:1;padding:0}
+.finance-header input#financeMonth{width:100%;height:44px;min-height:0;min-width:0;border:0;background:transparent;padding:0 4px;text-align:center;font:inherit;font-weight:650;color:var(--ink)}
+#financeMonth::-webkit-date-and-time-value{text-align:center}
+.months #year{text-align:center}
+.search,.field input:not([type=file]):not([type=hidden]):not([type=checkbox]):not([type=radio]),.expense-form input,.field select{display:block;width:100%;max-width:100%;min-width:0;height:var(--control-height);min-height:var(--control-height);border-radius:var(--control-radius);padding:0 14px;box-sizing:border-box;line-height:normal}
+.field input[type=date],.field input[type=time],.expense-form input[type=date]{-webkit-appearance:none;appearance:none}
+.field textarea{width:100%;min-height:112px;border-radius:var(--control-radius);padding:14px;resize:vertical}
+.field{width:100%;margin:var(--control-gap) 0}
+.primary,.secondary,.appointment-action,.add{min-height:var(--control-height);height:auto;border-radius:var(--control-radius);padding:12px 14px;box-sizing:border-box}
+.add{height:var(--control-height);width:calc(100% - 2 * var(--page-gutter));max-width:calc(720px - 2 * var(--page-gutter))}
+.appointment-actions,.stats,.finance-cards,.client-comment-actions{grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--control-gap);align-items:stretch}
+.expense-form{gap:var(--control-gap)}.expense-form .primary{margin:0}
+.finance-card,.stat{min-height:142px;padding:16px 14px;display:flex;flex-direction:column;justify-content:space-between;border-radius:20px;min-width:0}
+.finance-card strong,.stat b{font-size:clamp(18px,5vw,24px);overflow-wrap:anywhere;margin-top:12px}
+.finance-card small,.stat small{line-height:1.5;font-size:12px}
+.client-item,.event{width:100%;min-height:128px;margin:0 0 var(--control-gap);padding:14px;border-radius:20px}
+.client-comment-button{min-height:var(--control-height);width:100%;border-radius:var(--control-radius)}
+.theme-option,.theme-option[aria-pressed="true"]{height:100px;min-width:0;padding:10px 4px;border-width:2px;display:flex;flex-direction:column;justify-content:center;align-items:center}
+.theme-option .theme-preview{flex-shrink:0}
+.client-fullscreen .sheet{border:0;box-shadow:none}
+.client-fullscreen .sheet-head{position:relative;top:auto;background:transparent;border:0;box-shadow:none;backdrop-filter:none;-webkit-backdrop-filter:none;border-radius:0;min-height:44px;padding:0;margin:0 0 16px;justify-content:flex-end}
+.client-fullscreen #close{width:44px;height:44px;padding:0;border:0;background:none;box-shadow:none}
+.app{transform:translateY(var(--pull-offset))}
+.tabbar,.add{transform:translate(-50%,var(--pull-offset))}
+body.pull-return .app,body.pull-return .tabbar,body.pull-return .add{transition:transform .28s cubic-bezier(.2,.7,.2,1)}
+#calendarPage,#clientsPage,#financePage,#settingsPage{touch-action:pan-y}
+#pullRefreshHint{position:fixed;z-index:20;top:calc(env(safe-area-inset-top) + 10px);left:50%;display:flex;align-items:center;gap:9px;opacity:0;visibility:hidden;transform:translate(-50%,0);max-width:calc(100% - 32px);padding:10px 15px;transition:opacity .15s;pointer-events:none}
+#pullRefreshHint.visible{opacity:1;visibility:visible}
+.pull-spinner{width:22px;height:22px;border:2px solid var(--stroke);border-top-color:var(--accent);border-radius:50%;flex-shrink:0;transform:rotate(var(--pull-angle,0deg))}
+#pullRefreshHint.loading .pull-spinner{animation:crmSpin .75s linear infinite}
+@keyframes crmSpin{to{transform:rotate(360deg)}}
+@media(max-width:430px){:root{--page-gutter:18px}}
+
+</style>
 </head>
 <body>
 <main class="app">
@@ -108,7 +153,7 @@ input[type="date"],input[type="time"]{min-height:46px}
 <div class="week"><span>П</span><span>В</span><span>С</span><span>Ч</span><span>П</span><span>С</span><span>В</span></div><div class="dates" id="dates"></div><section class="agenda" id="agenda"></section>
 </section>
 <section id="settingsPage" class="hidden"><div class="settings-section"><h2 class="settings-heading">Оформление</h2><div class="theme-options"><button type="button" data-theme-option="system" class="theme-option" aria-pressed="false"><span class="theme-preview system"></span>Как в системе</button><button type="button" class="theme-option" data-theme-option="light" aria-pressed="true"><span class="theme-preview light"></span>Светлая</button><button type="button" class="theme-option" data-theme-option="dark" aria-pressed="false"><span class="theme-preview dark"></span>Тёмная</button></div></div><div class="settings-section"><h2 class="settings-heading">Цветовой акцент</h2><div id="accentOptions" class="accent-options" role="group" aria-label="Цветовой акцент"></div><p class="settings-help">Цвет меняет всю палитру приложения, включая фоновое неоновое свечение.</p><div class="settings-current" id="currentAppearance"></div></div></section><section id="financePage" class="hidden">
-<h2 class="finance-page-title">Статистика</h2><div class="finance-header"><input id="financeMonth" type="month" aria-label="Месяц статистики"></div>
+<h2 class="finance-page-title">Статистика</h2><div class="finance-header"><button id="financePrev" type="button" aria-label="Предыдущий месяц статистики">‹</button><input id="financeMonth" type="month" aria-label="Месяц статистики"><button id="financeNextMonth" type="button" aria-label="Следующий месяц статистики">›</button></div>
 <div class="finance-cards">
 <div class="finance-card"><small>Получено за завершённые сеансы</small><strong id="financeReceived">0 ₽</strong></div>
 <div class="finance-card"><small>Ожидается по записям в этом месяце</small><strong id="financeExpected">0 ₽</strong></div>
@@ -121,7 +166,7 @@ input[type="date"],input[type="time"]{min-height:46px}
 <input id="expenseDate" type="date" required aria-label="Дата расхода">
 <input id="expenseAmount" type="number" min="0.01" step="0.01" required placeholder="Сумма, ₽" aria-label="Сумма расхода">
 <input id="expenseNote" maxlength="200" required placeholder="На что потрачено: картриджи, плёнка…" aria-label="Описание расхода">
-<button type="submit" class="primary">+ Добавить расход</button>
+<button type="submit" class="primary">Добавить расход</button>
 </form>
 <h2 class="finance-section-title">Расходы за выбранный месяц</h2><div id="expenseList"></div><h2 class="finance-section-title">Структура финансов</h2><div class="finance-chart"><div id="financeDonut" class="finance-donut" role="img" aria-label="Соотношение полученных, ожидаемых средств и расходов"><div id="financeDonutCenter" class="finance-donut-center"></div></div><div id="financeLegend" class="finance-legend"></div></div>
 <p class="note">Получено — по отмеченным завершённым сеансам. Ожидаемые суммы — по незавершённым записям, не гарантированный доход. Диаграмма сравнивает показатели и не отражает денежный остаток. Финансы пока сохраняются только на этом устройстве.</p>
@@ -238,6 +283,7 @@ function renderClients(){
 }
 function setTab(next){
  tab=next;
+ document.querySelector(".app").dataset.tab=next;
  for(const name of ['calendar','clients','finance','settings']){
   $('#'+name+'Page').classList.toggle('hidden',name!==next);
   $('#'+name+'Tab').classList.toggle('active',name===next)
@@ -325,63 +371,74 @@ for(const color of accentPalette){
 }
 document.querySelectorAll('[data-theme-option]').forEach(b=>b.onclick=()=>{appearance.theme=b.dataset.themeOption;localStorage.setItem(appearanceKey,JSON.stringify(appearance));applyAppearance();render()});
 window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>{if(appearance.theme==='system')applyAppearance()});
-/* tattoo-crm-touch-gestures-v1 */
+/* tattoo-crm-touch-gestures-v2 */
 (function installTouchGestures(){
-  let startX=0,startY=0,gesture=null,pullDistance=0,fromCalendar=false;
-  const hint=document.createElement('div');
-  hint.id='pullRefreshHint';
-  hint.setAttribute('role','status');
-  hint.textContent='Потяни вниз для обновления';
-  document.body.append(hint);
-  const sheetOpen=()=>document.querySelector('#shade').classList.contains('show');
-  const reset=()=>{gesture=null;pullDistance=0;hint.classList.remove('visible')};
-  document.addEventListener('touchstart',e=>{
-    if(e.touches.length!==1||sheetOpen()){reset();return}
-    if(e.target.closest('input,textarea,select,[contenteditable="true"],.tabbar,.add')){reset();return}
-    startX=e.touches[0].clientX;startY=e.touches[0].clientY;
-    gesture='pending';pullDistance=0;
-    fromCalendar=tab==='calendar'&&!!e.target.closest('#calendarPage');
-  },{passive:true});
-  document.addEventListener('touchmove',e=>{
-    if(!gesture||gesture==='none'||e.touches.length!==1)return;
-    const dx=e.touches[0].clientX-startX;
-    const dy=e.touches[0].clientY-startY;
-    if(gesture==='pending' && Math.max(Math.abs(dx),Math.abs(dy))>12){
-      if(fromCalendar&&Math.abs(dx)>Math.abs(dy)*1.35){gesture='horizontal'}
-      else if(dy>0&&Math.abs(dy)>Math.abs(dx)*1.35&&window.scrollY<=1){gesture='pull'}
-      else{gesture='none'}
-    }
-    if(gesture==='pull'){
-      if(window.scrollY>1){reset();return}
-      if(e.cancelable)e.preventDefault();
-      pullDistance=Math.max(0,dy);
-      hint.textContent=pullDistance>=90?'Отпусти для обновления':'Потяни вниз для обновления';
-      hint.classList.add('visible');
-    }else if(gesture==='horizontal'&&fromCalendar){
-      if(e.cancelable)e.preventDefault();
-    }
-  },{passive:false});
-  document.addEventListener('touchend',e=>{
-    if(!gesture)return;
-    const dx=(e.changedTouches[0]?.clientX??startX)-startX;
-    const dy=(e.changedTouches[0]?.clientY??startY)-startY;
-    if(gesture==='pull'&&pullDistance>=90){
-      hint.textContent='Обновление…';
-      try {
-        sessionStorage.setItem('tattoo-crm-refresh-view',JSON.stringify({
-          tab,viewed:iso(viewed),selected,financeMonth:$('#financeMonth').value,
-          clientSearch:$('#clientSearch').value,scrollY:window.scrollY
-        }));
-      } catch(err) { console.warn('Не удалось сохранить открытую вкладку',err) }
-      window.location.reload();
-    }else if(gesture==='horizontal'&&fromCalendar&&Math.abs(dx)>=65&&Math.abs(dx)>Math.abs(dy)*1.35&&tab==='calendar'){
-      viewed=new Date(viewed.getFullYear(),viewed.getMonth()+(dx<0?1:-1),1);
-      selected=null;
-      renderCalendar();
-    }
-    reset();
-  },{passive:true});
-  document.addEventListener('touchcancel',reset,{passive:true});
+ const tabs=['calendar','clients','finance','settings'];
+ let gesture=null,startX=0,startY=0,startTab='',pull=0,threshold=0,refreshing=false,blockClickUntil=0;
+ const hint=document.createElement('div');hint.id='pullRefreshHint';hint.setAttribute('role','status');
+ const spinner=document.createElement('span');spinner.className='pull-spinner';spinner.setAttribute('aria-hidden','true');
+ const label=document.createElement('span');hint.append(spinner,label);document.body.append(hint);
+ const root=document.documentElement;
+ const sheetOpen=()=>$('#shade').classList.contains('show');
+ const offset=value=>root.style.setProperty('--pull-offset',value+'px');
+ function reset(){
+  gesture=null;pull=0;
+  document.body.classList.add('pull-return');offset(0);
+  hint.classList.remove('visible','loading');
+ }
+ async function refresh(){
+  if(refreshing)return;
+  refreshing=true;gesture=null;hint.classList.add('visible','loading');label.textContent='Обновление…';
+  document.body.classList.add('pull-return');offset(68);
+  try{
+   await new Promise(resolve=>setTimeout(resolve,350));
+   appointments=read('tattoo-crm-appointments-v1',appointments);
+   clients=read('tattoo-crm-clients-v1',clients);
+   expenses=read(expenseStoreKey,expenses);
+   render();
+   if(tab==='settings')applyAppearance();
+   label.textContent='Обновлено';
+   await new Promise(resolve=>setTimeout(resolve,200));
+  }catch(err){console.error(err);label.textContent='Не удалось обновить';await new Promise(resolve=>setTimeout(resolve,500))}
+  finally{refreshing=false;reset()}
+ }
+ document.addEventListener('touchstart',e=>{
+  if(refreshing||e.touches.length!==1||sheetOpen()||!e.target.closest('.app')||e.target.closest('input,textarea,select,[contenteditable],.tabbar,.add,[data-no-swipe]')){if(!refreshing)reset();return}
+  document.body.classList.remove('pull-return');
+  const t=e.touches[0];startX=t.clientX;startY=t.clientY;startTab=tab;
+  threshold=Math.max(1,(window.visualViewport?.height||window.innerHeight)*.5);
+  pull=0;gesture='pending';
+ },{passive:true});
+ document.addEventListener('touchmove',e=>{
+  if(!gesture||gesture==='none'||refreshing)return;
+  if(e.touches.length!==1||sheetOpen()){reset();return}
+  const t=e.touches[0],dx=t.clientX-startX,dy=t.clientY-startY;
+  if(gesture==='pending'&&Math.max(Math.abs(dx),Math.abs(dy))>12){
+   if(Math.abs(dx)>Math.abs(dy)*1.35)gesture='horizontal';
+   else if(dy>0&&Math.abs(dy)>Math.abs(dx)*1.35&&window.scrollY<=1)gesture='pull';
+   else gesture='none';
+  }
+  if(gesture==='pull'){
+   if(e.cancelable)e.preventDefault();
+   pull=Math.max(0,Math.min(threshold,dy));offset(pull);
+   spinner.style.setProperty('--pull-angle',(pull/threshold*360)+'deg');
+   label.textContent=pull>=threshold-1?'Отпусти для обновления':'Потяни вниз для обновления';
+   hint.classList.toggle('visible',pull>15);
+  }else if(gesture==='horizontal'&&e.cancelable)e.preventDefault();
+ },{passive:false});
+ document.addEventListener('touchend',e=>{
+  if(!gesture||refreshing)return;
+  const t=e.changedTouches[0],dx=(t?.clientX??startX)-startX,dy=(t?.clientY??startY)-startY;
+  if(gesture==='pull'||gesture==='horizontal')blockClickUntil=Date.now()+350;
+  if(gesture==='pull'&&pull>=threshold-1){void refresh();return}
+  if(gesture==='horizontal'&&tab===startTab&&Math.abs(dx)>=65&&Math.abs(dx)>Math.abs(dy)*1.35){
+   const next=tabs[tabs.indexOf(tab)+(dx<0?1:-1)];
+   if(next){setTab(next);window.scrollTo(0,0)}
+  }
+  reset();
+ },{passive:true});
+ document.addEventListener('touchcancel',()=>{if(!refreshing)reset()},{passive:true});
+ document.addEventListener('click',e=>{if(Date.now()<blockClickUntil&&e.detail!==0){e.preventDefault();e.stopImmediatePropagation()}},true);
 })();
 
 
@@ -426,6 +483,14 @@ function renderFinance(){
  if(!costs.length){const empty=document.createElement('p');empty.className='empty';empty.textContent='Расходов за этот месяц нет';list.append(empty)}
 }
 $('#financeMonth').onchange=renderFinance;
+function stepFinanceMonth(step){
+ const [year,month]=($('#financeMonth').value||currentMonth).split('-').map(Number);
+ const next=new Date(year,month-1+step,1);
+ $('#financeMonth').value=iso(next).slice(0,7);
+ renderFinance();
+}
+$('#financePrev').onclick=()=>stepFinanceMonth(-1);
+$('#financeNextMonth').onclick=()=>stepFinanceMonth(1);
 $('#expenseForm').onsubmit=e=>{
  e.preventDefault();
  const date=$('#expenseDate').value,n=Number($('#expenseAmount').value),note=$('#expenseNote').value.trim();
