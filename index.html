@@ -110,6 +110,8 @@ input[type="date"],input[type="time"]{min-height:46px}
 :root{--control-height:56px;--control-radius:16px;--control-gap:12px;--page-gutter:24px;--pull-offset:0px}
 html,body{overscroll-behavior-y:none}
 .app,.sheet{padding-left:max(var(--page-gutter),env(safe-area-inset-left, 0px));padding-right:max(var(--page-gutter),env(safe-area-inset-right, 0px))}
+html{background-color:var(--status-bar-color,var(--canvas))}
+select{font-family:inherit}
 .day .number,.finance-card strong,.expense-form input[inputmode="decimal"]{font-variant-numeric:tabular-nums}
 @media(display-mode:standalone){.app,.tabbar{max-width:none}}
 .app{display:flow-root}
@@ -365,7 +367,13 @@ function applyAppearance(){
   document.documentElement.style.setProperty('--accent',color.hex);
   document.documentElement.style.setProperty('--accent-contrast','#fff');
   document.documentElement.dataset.accent=appearance.accent;
-  document.querySelector('meta[name="theme-color"]').content=resolvedTheme==='dark'?'#101019':'#f7f6fb';
+  // Tint the system chrome even when the browser paints it outside the page.
+  const base=resolvedTheme==='dark'?[33,28,48]:[255,243,237];
+  const blend=resolvedTheme==='dark'?.58:.3;
+  const rgb=base.map((channel,index)=>Math.round(channel*(1-blend)+parseInt(color.hex.slice(1+index*2,3+index*2),16)*blend));
+  const statusBarColor='rgb('+rgb.join(', ')+')';
+  document.documentElement.style.setProperty('--status-bar-color',statusBarColor);
+  document.querySelector('meta[name="theme-color"]').content=statusBarColor;
   document.querySelectorAll('[data-theme-option]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.themeOption===appearance.theme)));
   document.querySelectorAll('[data-accent-option]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.accentOption===appearance.accent)));
   $('#currentAppearance').textContent=(appearance.theme==='system'?'Как в системе':appearance.theme==='dark'?'Тёмная':'Светлая')+' · '+color.name;
