@@ -175,15 +175,14 @@ body.pull-return .app,body.pull-return .tabbar,body.pull-return .add{transition:
 <section id="googleSyncSettings" class="settings-section" aria-labelledby="googleSyncHeading" data-google-client-id="">
   <h2 class="settings-heading" id="googleSyncHeading">Синхронизация с Google</h2>
   <p id="googleStatus" class="settings-help" role="status">Загружаем настройки синхронизации…</p>
-  <p id="googleSyncDisclosure" class="settings-help hidden">После входа карточки клиентов и их фото будут синхронизироваться с твоим Google Диском.</p>
+  <p id="googleSyncDisclosure" class="settings-help hidden">После входа карточки, сеансы, фото и финансы будут сохраняться на твоём Google Диске.</p>
   <button id="googleConnect" class="primary" type="button" disabled>Войти через Google</button>
   <button id="googleTransfer" class="primary hidden" type="button">Начать синхронизацию</button>
   <button id="googleKeepLocal" class="secondary hidden" type="button">Сохранить версии с устройства</button>
   <button id="googleKeepRemote" class="secondary hidden" type="button">Сохранить версии из Google</button>
   <button id="googleDisconnect" class="secondary hidden" type="button">Приостановить синхронизацию</button>
   <p><a id="googleWorkbook" class="hidden" href="#" target="_blank" rel="noopener noreferrer">Открыть таблицу клиентов</a></p>
-  <label class="settings-help"><input id="googleReportToggle" type="checkbox"> Автовыгрузка сеансов, фото работ и финансов</label>
-  <p class="settings-help">При включении CRM выгружает данные этого устройства в отдельный отчёт и сохраняет копии эскизов и фото на Google Диске.</p>
+  <p class="settings-help">CRM отправляет данные при сохранении изменений. Сеансы и финансы попадают в отчёт этого устройства, а эскизы и фото работ — в папку на твоём Google Диске.</p>
   <p><a id="googleReportLink" class="hidden" href="#" target="_blank" rel="noopener noreferrer">Открыть отчёт Tattoo CRM</a></p>
   <details>
     <summary>Настройка подключения</summary>
@@ -228,7 +227,7 @@ body.pull-return .app,body.pull-return .tabbar,body.pull-return .add{transition:
 <input type="hidden" name="discount" value="0">
 <label class="field">Описание работы<textarea name="notes" rows="2" placeholder="Что будем делать"></textarea></label>
 <div class="appointment-actions"><label class="appointment-action">Загрузить эскиз<input id="sketchInput" type="file" accept="image/*"></label><button class="appointment-action" id="appointmentAddContact" type="button">Добавить контакт</button></div><img id="sketchPreview" class="sketch-preview" alt="Эскиз"><button id="sketchRemove" class="sketch-remove" type="button">Удалить эскиз</button>
-<p class="note">Сеанс и эскиз сохраняются на устройстве. Выгрузку в Google можно включить в настройках.</p>
+<p class="note">Сеанс и эскиз сохраняются на устройстве и выгружаются в Google после подключения аккаунта.</p>
 <button class="primary" type="submit">Сохранить запись</button><button class="secondary" type="button" id="completed" hidden>Отметить сеанс завершённым</button><button class="secondary" type="button" id="cancelSession" hidden>Отменить сеанс</button><button class="secondary" type="button" id="rescheduleButton" hidden>Перенести сеанс</button>
 </form>
 <div id="rescheduleView" class="hidden"><p class="note">Выбери новую дату и время. Данные клиента, стоимость и эскиз сохранятся без изменений.</p><form id="rescheduleForm"><label class="field">Новая дата<input name="date" type="date" required></label><label class="field">Новое время<input name="time" type="time" required></label><button class="primary" type="submit">Подтвердить перенос</button><button class="secondary" type="button" id="rescheduleCancel">Отмена</button></form></div>
@@ -238,7 +237,7 @@ body.pull-return .app,body.pull-return .tabbar,body.pull-return .add{transition:
 <div class="detail-title">Комментарий о клиенте</div><button id="clientCommentDisplay" class="client-comment client-comment-button" type="button" aria-label="Добавить или изменить комментарий">Комментариев пока нет</button><div id="clientCommentEditor" class="client-comment-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="clientCommentDialogTitle"><div class="client-comment-dialog"><h3 id="clientCommentDialogTitle">Комментарий о клиенте</h3><label class="field">Комментарий<textarea id="clientCommentInput" rows="4" placeholder="Особенности, пожелания, замечания"></textarea></label><div class="client-comment-actions"><button id="cancelClientComment" class="secondary" type="button">Отмена</button><button id="saveClientComment" class="primary" type="button">Сохранить</button></div></div></div><button id="newSession" class="primary">Новый сеанс для клиента</button><button id="editClient" class="secondary">Изменить данные клиента</button><button id="deleteClient" class="secondary danger-action" type="button">Удалить контакт</button>
 <div class="detail-title">История сеансов</div><div id="clientHistory"></div>
 </div>
-<div id="sessionGalleryView" class="hidden"><div id="sessionGalleryInfo" class="detail-meta"></div><div id="sessionGalleryPhotos"></div><p class="note">Фото сохраняются на устройстве. Если включена автовыгрузка, копии также попадают на Google Диск.</p></div><div id="editClientView" class="hidden"><form id="clientForm"><label class="field">Имя<input name="name" required></label><label class="field">Телефон<input type="tel" name="phone"></label><label class="field">Дата рождения<input type="date" name="birthday"></label><label class="field">Фото клиента (необязательно)<input id="clientPhotoInput" type="file" accept="image/*"></label><button type="button" class="secondary" id="removeClientPhoto">Удалить выбранное фото</button><p class="note">Без отдельного фото используется первый загруженный эскиз клиента.</p><button class="primary" type="submit">Сохранить клиента</button></form></div>
+<div id="sessionGalleryView" class="hidden"><div id="sessionGalleryInfo" class="detail-meta"></div><div id="sessionGalleryPhotos"></div><p class="note">Фото сохраняются на устройстве и выгружаются на Google Диск после подключения аккаунта.</p></div><div id="editClientView" class="hidden"><form id="clientForm"><label class="field">Имя<input name="name" required></label><label class="field">Телефон<input type="tel" name="phone"></label><label class="field">Дата рождения<input type="date" name="birthday"></label><label class="field">Фото клиента (необязательно)<input id="clientPhotoInput" type="file" accept="image/*"></label><button type="button" class="secondary" id="removeClientPhoto">Удалить выбранное фото</button><p class="note">Без отдельного фото используется первый загруженный эскиз клиента.</p><button class="primary" type="submit">Сохранить клиента</button></form></div>
 </section></div>
 <script>
 'use strict';
@@ -559,7 +558,7 @@ applyAppearance();
   if(typeof state.scrollY==='number')requestAnimationFrame(()=>window.scrollTo(0,state.scrollY));
  }else{setTab('calendar')}
 })();
-import('./google-sync.js?v=4').then(({mountGoogleSync}) => {
+import('./google-sync.js?v=5').then(({mountGoogleSync}) => {
   googleSync = mountGoogleSync($('#googleSyncSettings'), {
     clients: () => structuredClone(clients),
     reportData: () => structuredClone({clients, appointments, expenses}),

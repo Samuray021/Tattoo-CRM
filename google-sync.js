@@ -260,7 +260,6 @@ export function mountGoogleSync(panel, local) {
   const restoreButton = element('googleKeepRemote');
   const workbookLink = element('googleWorkbook');
   const reportLink = element('googleReportLink');
-  const reportToggle = element('googleReportToggle');
   const status = element('googleStatus');
   const savedClientId = localStorage.getItem(clientIdKey) || '';
   const initialState = loadState();
@@ -279,14 +278,15 @@ export function mountGoogleSync(panel, local) {
   let expiresTimer;
   let localVersion = 0;
   const tell = message => { status.textContent = message; };
+  const hasPendingData = state => Boolean(state.pending || !state.reportId);
 
   function refreshControls() {
     const state = loadState();
     connectButton.disabled = loading || pendingAuth || working || !oauthClient;
     connectButton.classList.toggle('hidden', Boolean(session));
-    transferButton.classList.toggle('hidden', !session);
+    transferButton.classList.toggle('hidden', !session || (state.enabled && !hasPendingData(state)));
     transferButton.disabled = working;
-    transferButton.textContent = state.enabled ? 'Синхронизировать сейчас' : 'Начать синхронизацию';
+    transferButton.textContent = state.enabled ? 'Повторить синхронизацию' : 'Начать синхронизацию';
     disconnectButton.classList.toggle('hidden', !session && !state.enabled);
     disconnectButton.disabled = pendingAuth || working;
     settings.querySelector('button').disabled = loading || pendingAuth || working;
@@ -296,8 +296,6 @@ export function mountGoogleSync(panel, local) {
     }
     workbookLink.classList.toggle('hidden', !session?.workbook);
     if (session?.workbook) workbookLink.href = 'https://docs.google.com/spreadsheets/d/' + session.workbook.id + '/edit';
-    reportToggle.checked = Boolean(state.reportEnabled);
-    reportToggle.disabled = working;
     reportLink.classList.toggle('hidden', !state.reportId);
     if (safeId.test(state.reportId || '')) reportLink.href = 'https://docs.google.com/spreadsheets/d/' + state.reportId + '/edit';
   }
@@ -322,7 +320,7 @@ export function mountGoogleSync(panel, local) {
       const reason = [...error.reasons].join(', ');
       tell(error.service + ' отклонил запрос (403' + (reason ? ', ' + reason : '') + ').');
     } else if (error.status === 429 || error.status >= 500 || error.name === 'TimeoutError' || error instanceof TypeError) {
-      tell('Google пока недоступен. Изменения остались на устройстве, CRM повторит попытку.');
+      tell('Google пока недоступен. Изменения остались на устройстве. Синхронизацию можно повторить.');
     } else {
       tell(error instanceof GoogleError ? 'Не удалось синхронизировать с Google (' + error.status + ').' : error.message);
     }
@@ -409,7 +407,11 @@ export function mountGoogleSync(panel, local) {
   function schedule() {
     localVersion++;
     clearTimeout(timer);
-    if (!loadState().enabled) return;
+    const state = loadState();
+    if (!state.account) return;
+    saveState({pending: crypto.randomUUID()});
+    refreshControls();
+    if (!state.enabled) return;
     if (!session) {
       tell('Изменения сохранены на устройстве. Войди через Google для синхронизации.');
       return;
@@ -509,7 +511,6 @@ export function mountGoogleSync(panel, local) {
 
   async function syncReport(active, version) {
     const state = loadState();
-    if (!state.reportEnabled) return;
     const device = state.reportDevice || crypto.randomUUID();
     if (!state.reportDevice) saveState({reportDevice: device});
     const storage = googleStorage(active);
@@ -551,16 +552,19 @@ export function mountGoogleSync(panel, local) {
 
   async function syncAll(active, resolution) {
     const version = localVersion;
+    const {pending} = loadState();
     const message = await syncClients(active, resolution);
     if (session !== active || localVersion !== version) return;
     await syncReport(active, version);
     if (session === active && localVersion === version) {
+      if (!message && loadState().pending === pending) saveState({pending: null});
       tell(message || 'Синхронизировано ' + new Date().toLocaleTimeString('ru-RU', {hour: '2-digit', minute: '2-digit'}) + '.');
     }
   }
 
   async function synchronize(resolution) {
-    if (working || !session || !loadState().enabled) return;
+    const state = loadState();
+    if (working || !session || !state.enabled || (!resolution && !hasPendingData(state))) return;
     if (!navigator.onLine) {
       tell('Нет интернета. Изменения сохранены на устройстве.');
       return;
@@ -624,7 +628,7 @@ export function mountGoogleSync(panel, local) {
   transferButton.addEventListener('click', () => {
     if (!session) return;
     if (!loadState().enabled) {
-      if (!confirm('Подключить синхронизацию карточек и фотографий клиентов с этим аккаунтом Google? Существующие данные могут быть отправлены на Google Диск.')) return;
+      if (!confirm('Синхронизировать карточки, сеансы, фотографии и финансы с этим аккаунтом Google? Существующие данные будут отправлены на Google Диск.')) return;
       saveState({enabled: true, account: session.account, oauthClientId: localStorage.getItem(clientIdKey)});
     }
     synchronize();
@@ -641,14 +645,7 @@ export function mountGoogleSync(panel, local) {
   restoreButton.addEventListener('click', () => {
     if (confirm('Заменить конфликтующие версии карточек на этом устройстве версиями из Google?')) synchronize('remote');
   });
-  reportToggle.addEventListener('change', () => {
-    saveState({reportEnabled: reportToggle.checked});
-    schedule();
-  });
-  const trySync = () => { if (!document.hidden) synchronize(); };
-  window.addEventListener('online', trySync);
-  document.addEventListener('visibilitychange', trySync);
-  setInterval(trySync, 60000);
+  window.addEventListener('online', () => synchronize());
   const setupDetails = settings.closest('details');
   setupDetails.hidden = useSharedClient;
   clientIdInput.value = pairedClientId || savedClientId;
