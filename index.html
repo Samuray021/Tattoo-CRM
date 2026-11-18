@@ -3,7 +3,6 @@
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="apple-touch-icon" href="./assets/icon-192.png">
 <meta name="theme-color" content="#ffffff"><title>Tattoo CRM — Календарь и клиенты</title>
@@ -111,6 +110,14 @@ input[type="date"],input[type="time"]{min-height:46px}
 html,body{overscroll-behavior-y:none}
 .app,.sheet{padding-left:max(var(--page-gutter),env(safe-area-inset-left, 0px));padding-right:max(var(--page-gutter),env(safe-area-inset-right, 0px))}
 html{background-color:var(--status-bar-color,var(--canvas))}
+.app-top-background{display:none}
+@media(max-width:720px),(display-mode:standalone){
+ .app-top-background{
+  display:block;position:absolute;inset:0 0 auto;height:calc(env(safe-area-inset-top, 0px) + 76px);
+  z-index:-1;pointer-events:none;
+  background:linear-gradient(var(--status-bar-color,var(--canvas)) env(safe-area-inset-top, 0px),transparent);
+ }
+}
 select{font-family:inherit}
 .day .number,.finance-card strong,.expense-form input[inputmode="decimal"]{font-variant-numeric:tabular-nums}
 @media(display-mode:standalone){.app,.tabbar{max-width:none}}
@@ -156,6 +163,7 @@ body.pull-return .app,body.pull-return .tabbar,body.pull-return .add{transition:
 </head>
 <body>
 <main class="app">
+<div class="app-top-background" aria-hidden="true"></div>
 <header class="top"><h1 id="title">Ноябрь</h1></header>
 <section id="calendarPage">
 <nav class="months"><button id="prev" aria-label="Предыдущий месяц">‹</button><span id="year"></span><button id="next" aria-label="Следующий месяц">›</button></nav>
