@@ -120,7 +120,7 @@ html,body{overscroll-behavior-y:none}
  }
 }
 select{font-family:inherit}
-#googleWorkbook,#googleReportLink{color:var(--ink-accent,var(--ink))}
+#googleWorkbook,#googleReportLink,#googleSummaryLink{color:var(--ink-accent,var(--ink))}
 .day .number,.finance-card strong,.expense-form input[inputmode="decimal"]{font-variant-numeric:tabular-nums}
 @media(display-mode:standalone){.app,.tabbar{max-width:none}}
 .app{display:flow-root}
@@ -172,7 +172,7 @@ body.pull-return .app,body.pull-return .tabbar,body.pull-return .add{transition:
 <div class="week"><span>П</span><span>В</span><span>С</span><span>Ч</span><span>П</span><span>С</span><span>В</span></div><div class="dates" id="dates"></div><section class="agenda" id="agenda"></section>
 </section>
 <section id="settingsPage" class="hidden"><div class="settings-section"><h2 class="settings-heading">Оформление</h2><div class="theme-options"><button type="button" data-theme-option="system" class="theme-option" aria-pressed="false"><span class="theme-preview system"></span>Как в системе</button><button type="button" class="theme-option" data-theme-option="light" aria-pressed="true"><span class="theme-preview light"></span>Светлая</button><button type="button" class="theme-option" data-theme-option="dark" aria-pressed="false"><span class="theme-preview dark"></span>Тёмная</button></div></div><div class="settings-section"><h2 class="settings-heading">Цветовой акцент</h2><div id="accentOptions" class="accent-options" role="group" aria-label="Цветовой акцент"></div><p class="settings-help">Цвет меняет всю палитру приложения, включая фоновое неоновое свечение.</p><div class="settings-current" id="currentAppearance"></div></div>
-<section id="googleSyncSettings" class="settings-section" aria-labelledby="googleSyncHeading" data-google-client-id="">
+<section id="googleSyncSettings" class="settings-section" aria-labelledby="googleSyncHeading" data-google-client-id="392733315180-jgl6ltvb91c69hhab8ksi8t4j45f089h.apps.googleusercontent.com">
   <h2 class="settings-heading" id="googleSyncHeading">Синхронизация с Google</h2>
   <p id="googleStatus" class="settings-help" role="status">Загружаем настройки синхронизации…</p>
   <p id="googleSyncDisclosure" class="settings-help hidden">После входа карточки, сеансы, фото и финансы будут сохраняться на твоём Google Диске.</p>
@@ -183,15 +183,8 @@ body.pull-return .app,body.pull-return .tabbar,body.pull-return .add{transition:
   <button id="googleDisconnect" class="secondary hidden" type="button">Приостановить синхронизацию</button>
   <p><a id="googleWorkbook" class="hidden" href="#" target="_blank" rel="noopener noreferrer">Открыть таблицу клиентов</a></p>
   <p class="settings-help">CRM отправляет данные при сохранении изменений. Сеансы и финансы попадают в отчёт этого устройства, а эскизы и фото работ — в папку на твоём Google Диске.</p>
-  <p><a id="googleReportLink" class="hidden" href="#" target="_blank" rel="noopener noreferrer">Открыть отчёт Tattoo CRM</a></p>
-  <details>
-    <summary>Настройка подключения</summary>
-      <p class="settings-help">Укажи OAuth Client ID веб-приложения из Google Cloud. Доступ к таблице и фотографиям подтверждается в окне Google.</p>
-    <form id="googleSetup">
-      <label class="field">OAuth Client ID<input id="googleClientId" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" required></label>
-      <button class="secondary" type="submit">Сохранить Client ID</button>
-    </form>
-  </details>
+  <p><a id="googleSummaryLink" class="hidden" href="#" target="_blank" rel="noopener noreferrer">Открыть сводную по всем устройствам</a></p>
+  <p><a id="googleReportLink" class="hidden" href="#" target="_blank" rel="noopener noreferrer">Открыть отчёт этого устройства</a></p>
 </section>
 </section><section id="financePage" class="hidden">
 <h2 class="finance-page-title">Статистика</h2><div class="finance-header"><button id="financePrev" type="button" aria-label="Предыдущий месяц статистики">‹</button><input id="financeMonth" type="month" aria-label="Месяц статистики"><button id="financeNextMonth" type="button" aria-label="Следующий месяц статистики">›</button></div>
@@ -558,7 +551,7 @@ applyAppearance();
   if(typeof state.scrollY==='number')requestAnimationFrame(()=>window.scrollTo(0,state.scrollY));
  }else{setTab('calendar')}
 })();
-import('./google-sync.js?v=5').then(({mountGoogleSync}) => {
+import('./google-sync.js?v=6').then(({mountGoogleSync}) => {
   googleSync = mountGoogleSync($('#googleSyncSettings'), {
     clients: () => structuredClone(clients),
     reportData: () => structuredClone({clients, appointments, expenses}),

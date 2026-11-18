@@ -1,4 +1,4 @@
-import {reportRequests, reportTables, workPhotoTypes} from './google-report.js?v=1';
+import {accountReportTables, reportRequests, reportTables, workPhotoTypes} from './google-report.js?v=2';
 
 const driveScope = 'https://www.googleapis.com/auth/drive.file';
 const drive = 'https://www.googleapis.com/drive/v3';
@@ -215,13 +215,57 @@ function googleStorage(session) {
     const {root} = await openWorkbook();
     const id = await findOrCreate('report-' + deviceId, 'Отчёт Tattoo CRM · ' + deviceId.slice(0, 8), sheetType, root);
     if (unchanged && id === previousId) return id;
+    await updateReport(id, tables);
+    return id;
+  }
+
+  async function updateReport(id, tables) {
     const info = await request(serviceUrl(sheets, '/' + id, {fields: 'sheets(properties(sheetId,title))'}));
     const requests = reportRequests(tables, (info.sheets || []).map(sheet => sheet.properties));
     await request(sheets + '/' + id + ':batchUpdate', {
       method: 'POST',
       json: {requests: [{updateSpreadsheetProperties: {properties: {locale: 'ru_RU'}, fields: 'locale'}}, ...requests]}
     });
-    return id;
+  }
+
+  async function listDeviceReports(root, currentReportId) {
+    const reports = [];
+    let pageToken;
+    do {
+      const result = await request(serviceUrl(drive, '/files', {
+        q: "trashed = false and '" + root + "' in parents and mimeType = '" + sheetType + "'",
+        fields: 'nextPageToken,files(id,version,appProperties)', pageSize: 100,
+        ...(pageToken ? {pageToken} : {})
+      }));
+      reports.push(...(result.files || []));
+      pageToken = result.nextPageToken;
+    } while (pageToken);
+    if (!reports.some(report => report.id === currentReportId)) {
+      reports.push(await request(serviceUrl(drive, '/files/' + currentReportId, {fields: 'id,version,appProperties'})));
+    }
+    return reports.filter(report => /^report-[0-9a-f-]{36}$/.test(report.appProperties?.tattooRole || ''))
+      .sort((a, b) => a.id.localeCompare(b.id));
+  }
+
+  async function writeAccountSummary(currentReportId, previous) {
+    const {root} = await openWorkbook();
+    const id = await findOrCreate('account-summary-v1', 'Сводная Tattoo CRM', sheetType, root);
+    const signature = reports => JSON.stringify(reports.map(report => [report.id, report.version]));
+    for (let attempt = 0; attempt < 3; attempt++) {
+      const sources = await listDeviceReports(root, currentReportId);
+      const version = signature(sources);
+      if (previous.id === id && previous.version === version) return {id, version};
+      const reports = await Promise.all(sources.map(async source => {
+        const result = await request(serviceUrl(sheets, '/' + source.id, {
+          fields: 'sheets(properties(title),data(rowData(values(userEnteredValue,userEnteredFormat(textFormat(link))))))'
+        }));
+        return {device: source.appProperties.tattooRole.slice(7, 15), sheets: result.sheets || []};
+      }));
+      if (signature(await listDeviceReports(root, currentReportId)) !== version) continue;
+      await updateReport(id, accountReportTables(reports));
+      if (signature(await listDeviceReports(root, currentReportId)) === version) return {id, version};
+    }
+    throw new Error('Отчёты устройств изменились во время обновления сводной. Повтори синхронизацию.');
   }
 
   async function getPhoto(id, expectedHash) {
@@ -246,13 +290,11 @@ function googleStorage(session) {
     await request(serviceUrl(drive, path, {fields: 'trashed'}), {method: 'PATCH', json: {trashed: true}});
   }
 
-  return {profile: () => request('https://openidconnect.googleapis.com/v1/userinfo'), listClients, writeClient, putPhoto, getPhoto, trashPhoto, putWorkPhoto, writeReport};
+  return {profile: () => request('https://openidconnect.googleapis.com/v1/userinfo'), listClients, writeClient, putPhoto, getPhoto, trashPhoto, putWorkPhoto, writeReport, writeAccountSummary};
 }
 
 export function mountGoogleSync(panel, local) {
   const element = id => panel.querySelector('#' + id);
-  const settings = element('googleSetup');
-  const clientIdInput = element('googleClientId');
   const connectButton = element('googleConnect');
   const transferButton = element('googleTransfer');
   const disconnectButton = element('googleDisconnect');
@@ -260,6 +302,7 @@ export function mountGoogleSync(panel, local) {
   const restoreButton = element('googleKeepRemote');
   const workbookLink = element('googleWorkbook');
   const reportLink = element('googleReportLink');
+  const summaryLink = element('googleSummaryLink');
   const status = element('googleStatus');
   const savedClientId = localStorage.getItem(clientIdKey) || '';
   const initialState = loadState();
@@ -278,7 +321,7 @@ export function mountGoogleSync(panel, local) {
   let expiresTimer;
   let localVersion = 0;
   const tell = message => { status.textContent = message; };
-  const hasPendingData = state => Boolean(state.pending || !state.reportId);
+  const hasPendingData = state => Boolean(state.pending || !state.summary?.id);
 
   function refreshControls() {
     const state = loadState();
@@ -289,7 +332,6 @@ export function mountGoogleSync(panel, local) {
     transferButton.textContent = state.enabled ? 'Повторить синхронизацию' : 'Начать синхронизацию';
     disconnectButton.classList.toggle('hidden', !session && !state.enabled);
     disconnectButton.disabled = pendingAuth || working;
-    settings.querySelector('button').disabled = loading || pendingAuth || working;
     for (const button of [keepButton, restoreButton]) {
       button.classList.toggle('hidden', !session || !conflicts);
       button.disabled = working;
@@ -298,6 +340,9 @@ export function mountGoogleSync(panel, local) {
     if (session?.workbook) workbookLink.href = 'https://docs.google.com/spreadsheets/d/' + session.workbook.id + '/edit';
     reportLink.classList.toggle('hidden', !state.reportId);
     if (safeId.test(state.reportId || '')) reportLink.href = 'https://docs.google.com/spreadsheets/d/' + state.reportId + '/edit';
+    const summaryId = state.summary?.id;
+    summaryLink.classList.toggle('hidden', !safeId.test(summaryId || ''));
+    if (safeId.test(summaryId || '')) summaryLink.href = 'https://docs.google.com/spreadsheets/d/' + summaryId + '/edit';
   }
 
   function clearSession() {
@@ -548,6 +593,9 @@ export function mountGoogleSync(panel, local) {
     if (session !== active || localVersion !== version) return;
     const id = await storage.writeReport(device, tables, state.reportId, state.reportHash === hash);
     saveState({reportId: id, reportHash: hash, workPhotos: uploaded});
+    if (session !== active || localVersion !== version) return;
+    const summary = await storage.writeAccountSummary(id, state.summary || {});
+    saveState({summary});
   }
 
   async function syncAll(active, resolution) {
@@ -595,23 +643,6 @@ export function mountGoogleSync(panel, local) {
     }
   }
 
-  settings.addEventListener('submit', event => {
-    event.preventDefault();
-    const clientId = clientIdInput.value.trim();
-    if (!/^[a-zA-Z0-9_-]+\.apps\.googleusercontent\.com$/.test(clientId)) {
-      tell('Укажи OAuth Client ID веб-приложения из Google Cloud.');
-      return;
-    }
-    const state = loadState();
-    const previous = state.oauthClientId || localStorage.getItem(clientIdKey);
-    if (state.account && previous !== clientId) {
-      tell('На этом устройстве уже настроена синхронизация с другим OAuth Client ID.');
-      return;
-    }
-    localStorage.setItem(clientIdKey, clientId);
-    clearSession();
-    setup(clientId);
-  });
   connectButton.addEventListener('click', () => {
     if (!oauthClient || pendingAuth) return;
     pendingAuth = true;
@@ -629,7 +660,7 @@ export function mountGoogleSync(panel, local) {
     if (!session) return;
     if (!loadState().enabled) {
       if (!confirm('Синхронизировать карточки, сеансы, фотографии и финансы с этим аккаунтом Google? Существующие данные будут отправлены на Google Диск.')) return;
-      saveState({enabled: true, account: session.account, oauthClientId: localStorage.getItem(clientIdKey)});
+      saveState({enabled: true, account: session.account, oauthClientId: configuredClientId});
     }
     synchronize();
   });
@@ -646,10 +677,6 @@ export function mountGoogleSync(panel, local) {
     if (confirm('Заменить конфликтующие версии карточек на этом устройстве версиями из Google?')) synchronize('remote');
   });
   window.addEventListener('online', () => synchronize());
-  const setupDetails = settings.closest('details');
-  setupDetails.hidden = useSharedClient;
-  clientIdInput.value = pairedClientId || savedClientId;
-  if (configuredClientId) setupDetails.open = false;
   element('googleSyncDisclosure').classList.toggle('hidden', !useSharedClient);
   setup(configuredClientId);
   return {changed: schedule, photoChanged: notePhoto, workPhotoChanged(key) {

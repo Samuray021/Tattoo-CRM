@@ -67,6 +67,44 @@ export function reportTables({appointments, clients, expenses}, uploaded) {
   ];
 }
 
+export function accountReportTables(reports) {
+  const tables = reportTables({appointments: [], clients: [], expenses: []}, {});
+  const totals = new Map();
+  for (const {device, sheets} of reports) {
+    for (const table of tables) {
+      const sheet = sheets.find(item => item.properties.title === table.title);
+      const rows = sheet?.data?.[0]?.rowData || [];
+      if (rows.length && table.headers.some((label, index) => rows[0].values?.[index]?.userEnteredValue?.stringValue !== label)) {
+        throw new Error('Не удалось прочитать заголовки листа «' + table.title + '» в отчёте ' + device + '.');
+      }
+      for (const row of rows.slice(1)) {
+        const values = Array.from({length: table.headers.length}, (_, index) => {
+          const cell = row.values?.[index];
+          const uri = cell?.userEnteredFormat?.textFormat?.link?.uri || '';
+          const link = /^https:\/\/drive\.google\.com\/open\?id=([a-zA-Z0-9_-]{1,128})$/.exec(uri);
+          return link ? {fileId: link[1]} : cell?.userEnteredValue?.numberValue ?? cell?.userEnteredValue?.stringValue ?? '';
+        });
+        if (typeof values[0] !== 'number') continue;
+        if (table.title === 'Финансы') {
+          const month = values[0];
+          const sum = totals.get(month) || [0, 0, 0];
+          totals.set(month, sum.map((value, index) => value + amount(values[index + 1])));
+        } else {
+          table.rows.push([...values, device]);
+        }
+      }
+    }
+  }
+  tables[0].rows = [...totals].sort(([a], [b]) => b - a).map(([month, [received, expected, spent]]) =>
+    [month, received, expected, spent, received - spent]);
+  for (const table of tables.slice(1)) {
+    table.headers.push('Отчёт устройства');
+    table.widths.push(135);
+    table.rows.sort((a, b) => b[0] - a[0] || (table.title === 'Сеансы' ? amount(a[1]) - amount(b[1]) : 0));
+  }
+  return tables;
+}
+
 function makeCell(value, format) {
   if (value?.fileId) {
     return {userEnteredValue: {stringValue: 'Открыть'}, userEnteredFormat: {
