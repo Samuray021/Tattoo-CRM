@@ -120,6 +120,7 @@ html,body{overscroll-behavior-y:none}
  }
 }
 select{font-family:inherit}
+#googleWorkbook{color:var(--ink-accent,var(--ink))}
 .day .number,.finance-card strong,.expense-form input[inputmode="decimal"]{font-variant-numeric:tabular-nums}
 @media(display-mode:standalone){.app,.tabbar{max-width:none}}
 .app{display:flow-root}
@@ -170,7 +171,26 @@ body.pull-return .app,body.pull-return .tabbar,body.pull-return .add{transition:
 <nav class="months"><button id="prev" aria-label="Предыдущий месяц">‹</button><span id="year"></span><button id="next" aria-label="Следующий месяц">›</button></nav>
 <div class="week"><span>П</span><span>В</span><span>С</span><span>Ч</span><span>П</span><span>С</span><span>В</span></div><div class="dates" id="dates"></div><section class="agenda" id="agenda"></section>
 </section>
-<section id="settingsPage" class="hidden"><div class="settings-section"><h2 class="settings-heading">Оформление</h2><div class="theme-options"><button type="button" data-theme-option="system" class="theme-option" aria-pressed="false"><span class="theme-preview system"></span>Как в системе</button><button type="button" class="theme-option" data-theme-option="light" aria-pressed="true"><span class="theme-preview light"></span>Светлая</button><button type="button" class="theme-option" data-theme-option="dark" aria-pressed="false"><span class="theme-preview dark"></span>Тёмная</button></div></div><div class="settings-section"><h2 class="settings-heading">Цветовой акцент</h2><div id="accentOptions" class="accent-options" role="group" aria-label="Цветовой акцент"></div><p class="settings-help">Цвет меняет всю палитру приложения, включая фоновое неоновое свечение.</p><div class="settings-current" id="currentAppearance"></div></div></section><section id="financePage" class="hidden">
+<section id="settingsPage" class="hidden"><div class="settings-section"><h2 class="settings-heading">Оформление</h2><div class="theme-options"><button type="button" data-theme-option="system" class="theme-option" aria-pressed="false"><span class="theme-preview system"></span>Как в системе</button><button type="button" class="theme-option" data-theme-option="light" aria-pressed="true"><span class="theme-preview light"></span>Светлая</button><button type="button" class="theme-option" data-theme-option="dark" aria-pressed="false"><span class="theme-preview dark"></span>Тёмная</button></div></div><div class="settings-section"><h2 class="settings-heading">Цветовой акцент</h2><div id="accentOptions" class="accent-options" role="group" aria-label="Цветовой акцент"></div><p class="settings-help">Цвет меняет всю палитру приложения, включая фоновое неоновое свечение.</p><div class="settings-current" id="currentAppearance"></div></div>
+<section id="googleSyncSettings" class="settings-section" aria-labelledby="googleSyncHeading">
+  <h2 class="settings-heading" id="googleSyncHeading">Синхронизация с Google</h2>
+  <p id="googleStatus" class="settings-help" role="status">Загружаем настройки синхронизации…</p>
+  <button id="googleConnect" class="primary" type="button" disabled>Подключить Google</button>
+  <button id="googleTransfer" class="primary hidden" type="button">Начать синхронизацию</button>
+  <button id="googleKeepLocal" class="secondary hidden" type="button">Сохранить версии с устройства</button>
+  <button id="googleKeepRemote" class="secondary hidden" type="button">Сохранить версии из Google</button>
+  <button id="googleDisconnect" class="secondary hidden" type="button">Приостановить синхронизацию</button>
+  <p><a id="googleWorkbook" class="hidden" href="#" target="_blank" rel="noopener noreferrer">Открыть таблицу клиентов</a></p>
+  <details>
+    <summary>Настройка подключения</summary>
+      <p class="settings-help">Укажи OAuth Client ID веб-приложения из Google Cloud. Доступ к таблице и фотографиям подтверждается в окне Google.</p>
+    <form id="googleSetup">
+      <label class="field">OAuth Client ID<input id="googleClientId" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" required></label>
+      <button class="secondary" type="submit">Сохранить Client ID</button>
+    </form>
+  </details>
+</section>
+</section><section id="financePage" class="hidden">
 <h2 class="finance-page-title">Статистика</h2><div class="finance-header"><button id="financePrev" type="button" aria-label="Предыдущий месяц статистики">‹</button><input id="financeMonth" type="month" aria-label="Месяц статистики"><button id="financeNextMonth" type="button" aria-label="Следующий месяц статистики">›</button></div>
 <div class="finance-cards">
 <div class="finance-card"><small>Получено за завершённые сеансы</small><strong id="financeReceived">0 ₽</strong></div>
@@ -224,7 +244,8 @@ const money=n=>Number(n||0).toLocaleString('ru-RU')+' ₽',digits=s=>String(s||'
 const read=(key,def)=>{try{const val=JSON.parse(localStorage.getItem(key));return Array.isArray(val)?val:def}catch{return def}};
 let appointments=read('tattoo-crm-appointments-v1',[]),clients=read('tattoo-crm-clients-v1',[]);
 let viewed=new Date(now.getFullYear(),now.getMonth(),1),selected=iso(now),tab='calendar',editing=null,chosenClient=null,linkedClient=null,pendingSketch=null,removeSketch=false,sketchUrl=null;
-const save=()=>{localStorage.setItem('tattoo-crm-appointments-v1',JSON.stringify(appointments));localStorage.setItem('tattoo-crm-clients-v1',JSON.stringify(clients))};
+let googleSync;
+const save=()=>{localStorage.setItem('tattoo-crm-appointments-v1',JSON.stringify(appointments));localStorage.setItem('tattoo-crm-clients-v1',JSON.stringify(clients));googleSync?.changed()};
 const phoneVariants=value=>{const d=digits(value);if(d.length===11&&(d[0]==='7'||d[0]==='8'))return d.slice(1);if(d.length===10)return d;return d};
 const phoneMatches=(stored,query)=>{const q=phoneVariants(query),p=phoneVariants(stored);return q.length>=2&&p.includes(q)};
 const byPhone=phone=>{const n=normalized(phone);return n.length>=10?clients.find(c=>normalized(c.phone)===n):null};
@@ -272,7 +293,7 @@ function seedDemo(){
 seedDemo();
 reconcile();
 const dbPromise=new Promise((resolve,reject)=>{const request=indexedDB.open('tattoo-crm-sketches',1);request.onupgradeneeded=()=>{if(!request.result.objectStoreNames.contains('images'))request.result.createObjectStore('images')};request.onsuccess=()=>resolve(request.result);request.onerror=()=>reject(request.error)});
-async function imageOperation(mode,id,blob){const db=await dbPromise;return new Promise((resolve,reject)=>{const tx=db.transaction('images',mode==='get'?'readonly':'readwrite'),store=tx.objectStore('images');let request;if(mode==='get'){request=store.get(id);request.onsuccess=()=>resolve(request.result)}else{mode==='put'?store.put(blob,id):store.delete(id);tx.oncomplete=()=>resolve()}tx.onerror=()=>reject(tx.error);if(request)request.onerror=()=>reject(request.error)})}
+async function imageOperation(mode,id,blob,fromGoogle=false){const db=await dbPromise;const result=await new Promise((resolve,reject)=>{const tx=db.transaction('images',mode==='get'?'readonly':'readwrite'),store=tx.objectStore('images');let request;if(mode==='get'){request=store.get(id);request.onsuccess=()=>resolve(request.result)}else{mode==='put'?store.put(blob,id):store.delete(id);tx.oncomplete=()=>resolve()}tx.onerror=()=>reject(tx.error);if(request)request.onerror=()=>reject(request.error)});if(!fromGoogle&&mode!=='get'&&id.startsWith('client-photo-'))googleSync?.photoChanged(id.slice('client-photo-'.length));return result}
 function preview(blob){if(sketchUrl)URL.revokeObjectURL(sketchUrl);sketchUrl=blob?URL.createObjectURL(blob):null;$('#sketchPreview').src=sketchUrl||'';$('#sketchPreview').classList.toggle('visible',!!blob);$('#sketchRemove').classList.toggle('visible',!!blob)}
 function render(){if(tab==='calendar')renderCalendar();else if(tab==='clients')renderClients();else if(tab==='finance')renderFinance()}
 function renderCalendar(){const y=viewed.getFullYear(),m=viewed.getMonth();$('#title').textContent=months[m];$('#year').textContent=y;const grid=$('#dates');grid.replaceChildren();const first=(new Date(y,m,1).getDay()+6)%7;for(let i=0;i<first;i++)grid.append(document.createElement('div'));const count=new Date(y,m+1,0).getDate();for(let day=1;day<=count;day++){const d=iso(new Date(y,m,day)),button=document.createElement('button');button.className='day'+([0,6].includes(new Date(y,m,day).getDay())?' weekend':'')+(d===iso(now)?' today':'')+(selected===d?' selected':'');const num=document.createElement('span');num.className='number';num.textContent=day;const dot=document.createElement('span');dot.className=appointments.some(x=>x.date===d)?'dot':'no-dot';button.append(num,dot);button.onclick=()=>{selected=selected===d?null:d;render()};grid.append(button)}
@@ -534,5 +555,26 @@ applyAppearance();
   if(typeof state.scrollY==='number')requestAnimationFrame(()=>window.scrollTo(0,state.scrollY));
  }else{setTab('calendar')}
 })();
+import('./google-sync.js?v=1').then(({mountGoogleSync}) => {
+  googleSync = mountGoogleSync($('#googleSyncSettings'), {
+    clients: () => structuredClone(clients),
+    getPhoto: id => imageOperation('get', 'client-photo-' + id),
+    hasSessions: id => appointments.some(appointment => appointment.clientId === id),
+    isEditing: () => $('#shade').classList.contains('show'),
+    async receive(id, client, photo) {
+      if (photo !== undefined) await imageOperation(photo ? 'put' : 'delete', 'client-photo-' + id, photo, true);
+      const existing = byId(id);
+      const updated = client
+        ? existing ? clients.map(item => item.id === id ? {...item, ...client} : item) : [...clients, client]
+        : clients.filter(item => item.id !== id);
+      localStorage.setItem('tattoo-crm-clients-v1', JSON.stringify(updated));
+      clients = updated;
+      render();
+    }
+  });
+}).catch(error => {
+  console.error(error);
+  $('#googleStatus').textContent = 'Не удалось загрузить настройки Google. Обнови страницу.';
+});
 </script>
 </body></html>
