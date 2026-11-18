@@ -163,9 +163,8 @@ body.pull-return .app,body.pull-return .tabbar,body.pull-return .add{transition:
 
 <h2 class="finance-section-title">Расходы</h2>
 <form id="expenseForm" class="expense-form">
-<input id="expenseDate" type="date" required aria-label="Дата расхода">
 <input id="expenseAmount" type="number" min="0.01" step="0.01" required placeholder="Сумма, ₽" aria-label="Сумма расхода">
-<input id="expenseNote" maxlength="200" required placeholder="На что потрачено: картриджи, плёнка…" aria-label="Описание расхода">
+<input id="expenseNote" maxlength="200" required placeholder="Комментарий" aria-label="Комментарий к расходу">
 <button type="submit" class="primary">Добавить расход</button>
 </form>
 <h2 class="finance-section-title">Расходы за выбранный месяц</h2><div id="expenseList"></div><h2 class="finance-section-title">Структура финансов</h2><div class="finance-chart"><div id="financeDonut" class="finance-donut" role="img" aria-label="Соотношение полученных, ожидаемых средств и расходов"><div id="financeDonutCenter" class="finance-donut-center"></div></div><div id="financeLegend" class="finance-legend"></div></div>
@@ -447,7 +446,6 @@ const expenseStoreKey='tattoo-crm-expenses-v1';
 let expenses=read(expenseStoreKey,[]);
 const currentMonth=iso(now).slice(0,7);
 $('#financeMonth').value=currentMonth;
-$('#expenseDate').value=iso(now);
 function financeValue(a){return Math.max(0,Number(a.price||0)-Number(a.discount||0))}
 function renderFinanceChart(received,expected,spent){
  const parts=[{label:'Получено',amount:received,color:'#579b87'},{label:'Ожидается',amount:expected,color:'#6a9fd2'},{label:'Расходы',amount:spent,color:'#d879a0'}];
@@ -493,7 +491,8 @@ $('#financePrev').onclick=()=>stepFinanceMonth(-1);
 $('#financeNextMonth').onclick=()=>stepFinanceMonth(1);
 $('#expenseForm').onsubmit=e=>{
  e.preventDefault();
- const date=$('#expenseDate').value,n=Number($('#expenseAmount').value),note=$('#expenseNote').value.trim();
+ const today=iso(new Date()),month=$('#financeMonth').value||today.slice(0,7);
+ const date=month===today.slice(0,7)?today:month+'-01',n=Number($('#expenseAmount').value),note=$('#expenseNote').value.trim();
  if(!date||!Number.isFinite(n)||n<=0||!note)return;
  const updated=[...expenses,{id:crypto.randomUUID(),date,amount:n,note}];
  try{localStorage.setItem(expenseStoreKey,JSON.stringify(updated));expenses=updated;$('#expenseAmount').value='';$('#expenseNote').value='';$('#financeMonth').value=date.slice(0,7);renderFinance()}
