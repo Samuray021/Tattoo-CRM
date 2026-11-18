@@ -166,3 +166,86 @@ body:has(#financePage:not(.hidden)) .top{display:none}
 .client-comment-actions{display:grid;grid-template-columns:1fr 1fr;gap:11px;margin-top:15px}
 .client-comment-actions button{margin-top:0;min-height:49px}
 @media(max-width:430px){.top{height:65px}.top h1{font-size:23px}.finance-card{min-height:142px}}
+
+
+/* Chromatic print / gift-card inspired identity. All geometry stays in the existing layout. */
+:root{
+ --spectral-rose:#f44786;--spectral-coral:#f48b61;--spectral-teal:#399d9c;--spectral-violet:#7864be;--spectral-gold:#e8be6a;
+ --prism-a:color-mix(in srgb,var(--accent) 72%,var(--spectral-rose));
+ --prism-b:color-mix(in srgb,var(--accent) 40%,var(--spectral-teal));
+ --prism-c:color-mix(in srgb,var(--accent) 38%,var(--spectral-coral));
+ --prism-d:color-mix(in srgb,var(--accent) 40%,var(--spectral-violet));
+ --prism-e:color-mix(in srgb,var(--accent) 30%,var(--spectral-gold));
+ --grain:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.86' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.19'/%3E%3C/svg%3E");
+}
+html[data-theme="dark"]{
+ --page:#211c30;--canvas:#151521;--ink:#fff7f3;--muted:#d2c5db;
+ --surface:#30283f;--stroke:color-mix(in srgb,var(--accent) 35%,#55485e);
+ --glass:color-mix(in srgb,var(--surface) 91%,transparent);--input:#332b42;
+ --veil:76%;--glow-strength:63%;--card-tone:19%;--ink-accent:color-mix(in srgb,var(--accent) 65%,white);
+ --button-a:color-mix(in srgb,var(--prism-a) 65%,#54213f);
+ --button-b:color-mix(in srgb,var(--prism-d) 65%,#33254f);
+}
+html[data-theme="light"]{
+ --page:#fff3ed;--canvas:#f2e5ed;--ink:#392b43;--muted:#685569;
+ --surface:#fff8f4;--stroke:color-mix(in srgb,var(--accent) 37%,#dfd1d9);
+ --glass:color-mix(in srgb,var(--surface) 91%,transparent);--input:#fffaf7;
+ --veil:67%;--glow-strength:51%;--card-tone:16%;--ink-accent:color-mix(in srgb,var(--accent) 57%,#352035);
+ --button-a:color-mix(in srgb,var(--prism-a) 50%,#78304c);
+ --button-b:color-mix(in srgb,var(--prism-d) 50%,#41345e);
+}
+body{
+ background:
+ radial-gradient(ellipse at 85% 4%,color-mix(in srgb,var(--prism-c) var(--glow-strength),transparent),transparent 55%),
+ radial-gradient(ellipse at 8% 45%,color-mix(in srgb,var(--prism-b) var(--glow-strength),transparent),transparent 62%),
+ var(--canvas);
+}
+.app{
+ background:linear-gradient(145deg,color-mix(in srgb,var(--page) 82%,var(--prism-d)),var(--page) 65%);
+ box-shadow:0 0 65px color-mix(in srgb,var(--prism-d) 23%,transparent);
+}
+.app:before{
+ height:100%;inset:0;pointer-events:none;
+ background:
+ radial-gradient(ellipse 98% 34% at 14% 3%,color-mix(in srgb,var(--prism-a) var(--glow-strength),transparent),transparent 100%),
+ radial-gradient(ellipse 83% 27% at 98% 21%,color-mix(in srgb,var(--prism-e) 42%,transparent),transparent 100%),
+ radial-gradient(ellipse 96% 36% at 0% 54%,color-mix(in srgb,var(--prism-b) var(--glow-strength),transparent),transparent 100%),
+ radial-gradient(ellipse 93% 32% at 100% 76%,color-mix(in srgb,var(--prism-d) var(--glow-strength),transparent),transparent 100%),
+ radial-gradient(ellipse 94% 22% at 30% 100%,color-mix(in srgb,var(--prism-c) 42%,transparent),transparent 100%);
+}
+.app:after{
+ content:"";position:absolute;inset:0;pointer-events:none;z-index:-1;background-image:var(--grain);opacity:.31;
+}
+.top h1,.finance-page-title,.sheet h2{font-weight:650;letter-spacing:-.6px}
+.months,.finance-header,.dates,.event,.client-item,.stat,.finance-card,.sketch-box,.client-comment,.theme-option,.finance-legend-item{
+ background:linear-gradient(145deg,color-mix(in srgb,var(--surface) calc(100% - var(--card-tone)),var(--prism-a)),color-mix(in srgb,var(--surface) 87%,var(--prism-d)));
+ border-color:var(--stroke);box-shadow:0 7px 23px color-mix(in srgb,var(--prism-d) 13%,transparent),inset 0 1px 0 #ffffff20;
+}
+.finance-card:nth-child(2){background:linear-gradient(135deg,color-mix(in srgb,var(--surface) 78%,var(--prism-b)),color-mix(in srgb,var(--surface) 92%,var(--prism-d)))}
+.finance-card:nth-child(3){background:linear-gradient(135deg,color-mix(in srgb,var(--surface) 77%,var(--prism-c)),color-mix(in srgb,var(--surface) 90%,var(--prism-a)))}
+.finance-card:nth-child(4){background:linear-gradient(135deg,color-mix(in srgb,var(--surface) 80%,var(--prism-d)),color-mix(in srgb,var(--surface) 90%,var(--prism-b)))}
+.dates{background:linear-gradient(150deg,color-mix(in srgb,var(--surface) 85%,var(--prism-a)),color-mix(in srgb,var(--surface) 87%,var(--prism-b)))}
+.event:before{background:linear-gradient(var(--prism-a),var(--prism-b))}
+.add,.primary,.appointment-action{
+ background:linear-gradient(110deg,var(--button-a),var(--button-b));color:#fff;
+ border-color:color-mix(in srgb,var(--accent) 68%,white);
+ box-shadow:0 8px 24px color-mix(in srgb,var(--prism-a) 30%,transparent);
+}
+.day.selected .number{background:linear-gradient(140deg,var(--button-a),var(--button-b));color:#fff;box-shadow:0 0 14px var(--accent-glow)}
+.day.today:not(.selected) .number,.tabbar button.active,.client-item .arrow{color:var(--ink-accent)}
+.dot{background:var(--ink-accent)}
+.tabbar{background:var(--glass);border-color:var(--stroke);box-shadow:0 -5px 25px color-mix(in srgb,var(--prism-d) 17%,transparent)}
+.sheet,.client-fullscreen .sheet,.client-comment-dialog{
+ background:
+ radial-gradient(ellipse at 94% 0%,color-mix(in srgb,var(--prism-a) 30%,transparent),transparent 42%),
+ radial-gradient(ellipse at 0% 72%,color-mix(in srgb,var(--prism-b) 23%,transparent),transparent 58%),
+ var(--page);
+ color:var(--ink)
+}
+.search,.field input,.field textarea,.expense-form input,.client-comment-dialog textarea{background:var(--input);color:var(--ink);border-color:var(--stroke)}
+.search::placeholder,.field input::placeholder,.field textarea::placeholder,.expense-form input::placeholder{color:var(--muted)}
+.client-item .avatar{background:linear-gradient(145deg,var(--button-a),var(--button-b));color:white}
+.field input:focus,.field textarea:focus,.search:focus{outline-color:var(--ink-accent)}
+.theme-option[aria-pressed="true"]{border-color:var(--ink-accent)}
+.finance-donut-center{background:var(--surface);color:var(--ink)}
+@media(prefers-reduced-transparency:reduce){.app:after{display:none}.tabbar{background:var(--surface)}}
